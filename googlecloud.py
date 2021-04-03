@@ -1,14 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Python script for detecting labels with Google Cloud Vision
-"""
-
 import csv
-import pickle
 import os
-import google.oauth2.service_account
+import io
 from google.cloud import vision
-from google.cloud.vision_v1 import types
 
 
 ########### Paths
@@ -31,15 +24,20 @@ for imageFile in local_images:
     with open(rekog_images_dir + imageFile, "rb") as image:
         content = image.read()
         image = vision.Image(content=content)
-        response = client.label_detection(image=image)
+        features = [{"type_": vision.Feature.Type.LABEL_DETECTION, "max_results": 11}]
+        requests = [{"image": image, "features": features}]
+
+        response = client.batch_annotate_images(requests=requests)
+        # response = client.label_detection(image=image)
+        # labels = response.label_annotations
 
     print("Detected labels for " + imageFile)
 
-    if len(response.label_annotations) == 0:
+    if len(response.responses) == 0:
         print("No Labels Detected")
         temp_dict = {}
         temp_dict["image_id"] = imageFile
-        temp_dict["full_detect_labels_response"] = response
+        temp_dict["full_detect_labels_response"] = labels
         temp_dict["label_num"] = ""
         temp_dict["label_str"] = ""
         temp_dict["label_conf"] = ""
@@ -49,16 +47,17 @@ for imageFile in local_images:
 
         label_counter = 1
 
-        for label in response.label_annotations:
-            print(label.description + " : " + str(label.score))
-            temp_dict = {}
-            temp_dict["image_id"] = imageFile
-            temp_dict["full_detect_labels_response"] = response
-            temp_dict["label_num"] = label_counter
-            temp_dict["label_str"] = label.description
-            temp_dict["label_conf"] = label.score
-            label_counter += 1  # update for the next label
-            holder_labels.append(temp_dict)
+        for image_response in response.responses:
+            for label in image_response.label_annotations:
+                print(label.description + " : " + str(label.score))
+                temp_dict = {}
+                temp_dict["image_id"] = imageFile
+                temp_dict["full_detect_labels_response"] = label
+                temp_dict["label_num"] = label_counter
+                temp_dict["label_str"] = label.description
+                temp_dict["label_conf"] = label.score
+                label_counter += 1  # update for the next label
+                holder_labels.append(temp_dict)
 
 len(holder_labels)
 
