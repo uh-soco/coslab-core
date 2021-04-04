@@ -24,16 +24,12 @@ for imageFile in local_images:
     with open(rekog_images_dir + imageFile, "rb") as image:
         content = image.read()
         image = vision.Image(content=content)
-        features = [{"type_": vision.Feature.Type.LABEL_DETECTION, "max_results": 11}]
-        requests = [{"image": image, "features": features}]
-
-        response = client.batch_annotate_images(requests=requests)
-        # response = client.label_detection(image=image)
-        # labels = response.label_annotations
+        response = client.label_detection(image=image)
+        labels = response.label_annotations
 
     print("Detected labels for " + imageFile)
 
-    if len(response.responses) == 0:
+    if len(labels) == 0:
         print("No Labels Detected")
         temp_dict = {}
         temp_dict["image_id"] = imageFile
@@ -47,17 +43,16 @@ for imageFile in local_images:
 
         label_counter = 1
 
-        for image_response in response.responses:
-            for label in image_response.label_annotations:
-                print(label.description + " : " + str(label.score))
-                temp_dict = {}
-                temp_dict["image_id"] = imageFile
-                temp_dict["full_detect_labels_response"] = label
-                temp_dict["label_num"] = label_counter
-                temp_dict["label_str"] = label.description
-                temp_dict["label_conf"] = label.score
-                label_counter += 1  # update for the next label
-                holder_labels.append(temp_dict)
+        for label in labels:
+            print(label.description + " : " + str(label.score))
+            temp_dict = {}
+            temp_dict["image_id"] = imageFile
+            temp_dict["full_detect_labels_response"] = label
+            temp_dict["label_num"] = label_counter
+            temp_dict["label_str"] = label.description
+            temp_dict["label_conf"] = label.score
+            label_counter += 1  # update for the next label
+            holder_labels.append(temp_dict)
 
 len(holder_labels)
 

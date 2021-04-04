@@ -47,7 +47,8 @@ holder_labels = []
 
 for imageFile in local_images:
     with open(rekog_images_dir + imageFile, "rb") as image:
-        response = client.detect_labels(Image={"Bytes": image.read()})
+        content = image.read()
+        response = client.detect_labels(Image={"Bytes": content})
 
     print("Detected labels for " + imageFile)
 
