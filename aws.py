@@ -3,57 +3,59 @@ import json
 import yaml
 import os
 
-secrets = yaml.safe_load(open("secrets.yaml"))
+import common
 
-api_id = secrets["aws"]["api_id"]
-api_key = secrets["aws"]["api_key"]
-api_region = secrets["aws"]["api_region"]
+def process_local( client, images ):
 
-client = boto3.client(
-    "rekognition",
-    aws_access_key_id=api_id,
-    aws_secret_access_key=api_key,
-    region_name=api_region,
-)
+    holder_responses = []
+    holder_labels = []
 
-rekog_images_dir = "/media/antonberg/Origenes/Coding/image-taggers/data/"
-local_images = os.listdir(rekog_images_dir)
+    for imageFile in images:
 
-#### Detect labels #####
-holder_labels = []
+        image =  open(imageFile, "rb")
 
-for imageFile in local_images:
-    with open(rekog_images_dir + imageFile, "rb") as image:
+        ## todo: check if it is cheaper to label several images at the same time or not
         content = image.read()
-        response = client.detect_labels(Image={"Bytes": content})
 
-    print("Detected labels for " + imageFile)
+        response = client.detect_labels(
+            Image= {"Bytes": content} ,
+            MinConfidence = common.config.getfloat('DEFAULT', 'minimal_confidence')
+        )
 
-    if len(response["Labels"]) == 0:
-        print("No labels detected")
-        temp_dict = {}
-        temp_dict["image_id"] = imageFile
-        temp_dict["full_detect_labels_response"] = response
-        temp_dict["label_num"] = ""
-        temp_dict["label_str"] = ""
-        temp_dict["label_conf"] = ""
-        holder_labels.append(temp_dict)
-        print()
+        ## todo: save responses directly to database/json output
+        holder_responses.append( response )
 
-    else:
+        print("Detected labels for " + imageFile)
 
-        label_counter = 1
-
-        for label in response["Labels"]:
-            print(label["Name"] + " : " + str(label["Confidence"]))
+        for label_counter, label in enumerate( response["Labels"] ):
             temp_dict = {}
             temp_dict["image_id"] = imageFile
-            temp_dict["full_detect_labels_response"] = response
             temp_dict["label_num"] = label_counter
-            temp_dict["label_str"] = label["Name"]
-            temp_dict["label_conf"] = label["Confidence"]
-            label_counter += 1  # update for the next label
-            holder_labels.append(temp_dict)
-            print()
+            temp_dict["label"] = label["Name"]
+            temp_dict["confidence"] = label["Confidence"]
 
-print(len(holder_labels))
+            holder_labels.append(temp_dict)
+
+    ## todo: save to SQL?
+    print( holder_labels )
+
+if __name__ == '__main__':
+    args = common.arguments() ## creates a common parameters sets for all programs
+
+    secrets = yaml.safe_load( open( args.secrets ) )
+
+    api_id = secrets["aws"]["api_id"]
+    api_key = secrets["aws"]["api_key"]
+    api_region = secrets["aws"]["api_region"]
+
+    client = boto3.client(
+        "rekognition",
+        aws_access_key_id=api_id,
+        aws_secret_access_key=api_key,
+        region_name=api_region,
+    )
+
+    if args.folder:
+        directory = args.folder
+        images = [ os.path.join(directory, file) for file in os.listdir(directory) ]
+        process_local( client, images )
