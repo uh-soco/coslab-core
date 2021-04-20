@@ -22,6 +22,8 @@ local_images = os.listdir(rekog_images_dir)
 
 holder_categories = []
 
+## TOdo: check if it is cheaper to analyse one image at a time or request tags for several images
+
 for imageFile in local_images:
     with open(rekog_images_dir + imageFile, "rb") as image:
         response = client.tag_image_in_stream(image)
@@ -44,6 +46,8 @@ for imageFile in local_images:
         labels_counter = 1
 
         for tag in response.tags:
+            ## todo: check if there is support to define minimun confidence level on the API call
+            ## if not, filter here by requiring that confidence > congigured minimun level
             print("'{}' with confidence {:.2f}%".format(tag.name, tag.confidence * 100))
             temp_dict = {}
             temp_dict["image_id"] = imageFile
