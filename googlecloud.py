@@ -1,23 +1,20 @@
-import csv
 import os
-import io
+import yaml
+import google.oauth2.service_account
 from google.cloud import vision
 
+secrets = yaml.safe_load(open("secrets.yaml"))
+api_account_info = secrets["google"]["service_account_info"]
 
-########### Paths
-# Path to where your want to save the resulting labels
-rekog_results_dir = "/media/antonberg/Origenes/Coding/image-taggers/results/"
-# Path to where your images are
+credentials = google.oauth2.service_account.Credentials.from_service_account_info(
+    api_account_info
+)
+
 rekog_images_dir = "/media/antonberg/Origenes/Coding/image-taggers/data/"
-
-########### Connect to Google Cloud Vision API
-# First run in terminal export GOOGLE_APPLICATION_CREDENTIALS="[PATH]"
-client = vision.ImageAnnotatorClient()
-########### Create a list of images to pass through API
-# Make a list of all the images in the rekog_data_dir you created
 local_images = os.listdir(rekog_images_dir)
 
-##### Detect labels
+client = vision.ImageAnnotatorClient(credentials=credentials)
+
 holder_labels = []
 
 for imageFile in local_images:
@@ -54,21 +51,4 @@ for imageFile in local_images:
             label_counter += 1  # update for the next label
             holder_labels.append(temp_dict)
 
-len(holder_labels)
-
-###########
-# Write out the results to a csv
-with open(
-    rekog_results_dir + "googlecloud_detect_labels.csv", "w", newline=""
-) as csvfile:
-    fieldnames = [
-        "image_id",
-        "full_detect_labels_response",
-        "label_num",
-        "label_str",
-        "label_conf",
-    ]
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
-    for entry in holder_labels:
-        writer.writerow(entry)
+print(len(holder_labels))

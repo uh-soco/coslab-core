@@ -1,3 +1,4 @@
-.data/
+.test_data/
 .vscode/
+secrets.yaml
 __pycache__

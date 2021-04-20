@@ -1,48 +1,25 @@
-# -*- coding: utf-8 -*-
-"""
-Python script for detecting labels with Rekognition
-"""
-
-import csv
 import boto3
-import pickle
+import json
+import yaml
 import os
 
-########### Paths
-# Path to where your want to save the resulting labels
-rekog_results_dir = "/media/antonberg/Origenes/Coding/image-taggers/results/"
+secrets = yaml.safe_load(open("secrets.yaml"))
 
-# Path to where your images are
-rekog_images_dir = "/media/antonberg/Origenes/Coding/image-taggers/data/"
+api_id = secrets["aws"]["api_id"]
+api_key = secrets["aws"]["api_key"]
+api_region = secrets["aws"]["api_region"]
 
-########### Connect to AWS Rekognition API
-credentials = []
-
-with open(
-    "/media/antonberg/Origenes/Coding/image-taggers/keys/anton_accessKeys.csv",
-    newline="",
-) as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        credentials.append(row)
-
-personal_access_key = credentials[0]["Access key ID"]
-secret_access_key = credentials[0]["Secret access key"]
-
-# Initialize the boto client to access the Rekogniton api
 client = boto3.client(
     "rekognition",
-    "us-east-2",
-    aws_access_key_id=personal_access_key,
-    aws_secret_access_key=secret_access_key,
+    aws_access_key_id=api_id,
+    aws_secret_access_key=api_key,
+    region_name=api_region,
 )
 
-########### Create a list of images to pass through API
-# Make a list of all the images in the rekog_data_dir you created
+rekog_images_dir = "/media/antonberg/Origenes/Coding/image-taggers/data/"
 local_images = os.listdir(rekog_images_dir)
 
-##### Detect labels
-##
+#### Detect labels #####
 holder_labels = []
 
 for imageFile in local_images:
@@ -52,9 +29,8 @@ for imageFile in local_images:
 
     print("Detected labels for " + imageFile)
 
-    ## If no labels detected, still save the info:
     if len(response["Labels"]) == 0:
-        print("No Labels Detected")
+        print("No labels detected")
         temp_dict = {}
         temp_dict["image_id"] = imageFile
         temp_dict["full_detect_labels_response"] = response
@@ -62,6 +38,7 @@ for imageFile in local_images:
         temp_dict["label_str"] = ""
         temp_dict["label_conf"] = ""
         holder_labels.append(temp_dict)
+        print()
 
     else:
 
@@ -77,22 +54,6 @@ for imageFile in local_images:
             temp_dict["label_conf"] = label["Confidence"]
             label_counter += 1  # update for the next label
             holder_labels.append(temp_dict)
+            print()
 
-len(holder_labels)
-
-###########
-# Write out the results to a csv
-with open(
-    rekog_results_dir + "awsrekognition_detect_labels.csv", "w", newline=""
-) as csvfile:
-    fieldnames = [
-        "image_id",
-        "full_detect_labels_response",
-        "label_num",
-        "label_str",
-        "label_conf",
-    ]
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
-    for entry in holder_labels:
-        writer.writerow(entry)
+print(len(holder_labels))
