@@ -17,6 +17,8 @@ client = vision.ImageAnnotatorClient(credentials=credentials)
 
 holder_labels = []
 
+## TOdo: check if it is cheaper to analyse one image at a time or request tags for several images at the same time
+
 for imageFile in local_images:
     with open(rekog_images_dir + imageFile, "rb") as image:
         content = image.read()
@@ -39,6 +41,9 @@ for imageFile in local_images:
     else:
 
         label_counter = 1
+
+        ## todo: check if there is support to define minimun confidence level on the API call
+        ## if not, filter here by requiring that confidence > congigured minimun level
 
         for label in labels:
             print(label.description + " : " + str(label.score))
