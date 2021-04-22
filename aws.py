@@ -33,32 +33,23 @@ def process_local(client, images):
             service = "aws"
             image_id = imageFile
             label_num = label_counter
-            label = label["Name"]
+            label_name = label["Name"]
             confidence = label["Confidence"]
             date = datetime.datetime.now()
 
             # Saving to database
-            db.executemany(
-                """INSERT INTO results (image,label,label_num,service,confidence,date) VALUES(?,?,?,?,?,?)""",
-                image_id,
-                label,
-                label_num,
-                service,
-                confidence,
-                date,
+            sql = """INSERT INTO results(image,label,label_num,service,confidence,date) VALUES (?,?,?,?,?,?)"""
+            db.execute(
+                sql, (image_id, label_name, label_num, service, confidence, date)
             )
             conn.commit()
-            conn.close()
+
             # temp_dict = {}
             # temp_dict["image_id"] = imageFile
             # temp_dict["label_num"] = label_counter
             # temp_dict["label"] = label["Name"]
             # temp_dict["confidence"] = label["Confidence"]
             # holder_labels.append(temp_dict)
-
-    ## todo: save to SQL?
-
-    # print(holder_labels)
 
 
 if __name__ == "__main__":
