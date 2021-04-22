@@ -27,22 +27,23 @@ def process_local(client, images):
         )
         ## todo: save responses directly to database/json output
         holder_responses.append(response)
-        # print("Detected labels for " + imageFile)
+        print("Detected labels for " + imageFile)
 
         for label_counter, label in enumerate(response["Labels"]):
-            service = "aws"
-            image_id = imageFile
-            label_num = label_counter
-            label_name = label["Name"]
-            confidence = label["Confidence"]
-            date = datetime.datetime.now()
+            if label["Confidence"] > 0.55:
+                service = "aws"
+                image_id = imageFile
+                label_num = label_counter
+                label_name = label["Name"]
+                confidence = label["Confidence"]
+                date = datetime.datetime.now()
 
-            # Saving to database
-            sql = """INSERT INTO results(image,label,label_num,service,confidence,date) VALUES (?,?,?,?,?,?)"""
-            db.execute(
-                sql, (image_id, label_name, label_num, service, confidence, date)
-            )
-            conn.commit()
+                # Saving to database
+                sql = """INSERT INTO results(image,label,label_num,service,confidence,date) VALUES (?,?,?,?,?,?)"""
+                db.execute(
+                    sql, (image_id, label_name, label_num, service, confidence, date)
+                )
+                conn.commit()
 
             # temp_dict = {}
             # temp_dict["image_id"] = imageFile

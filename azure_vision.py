@@ -1,61 +1,62 @@
 import os
 import yaml
+import sqlite3
+import datetime
+import common
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
 from msrest.authentication import CognitiveServicesCredentials
 
+conn = sqlite3.connect("results.db")
+db = conn.cursor()
+db.execute(
+    "CREATE TABLE IF NOT EXISTS results (id INTEGER PRIMARY KEY, image TEXT, label TEXT, label_num INT, service TEXT, confidence REAL, date DATE )"
+)
 
-secrets = yaml.safe_load(open("secrets.yaml"))
-subscription_key = secrets["azure"]["api_key"]
-endpoint = secrets["azure"]["api_url"]
 
-client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(subscription_key))
+def process_local(client, images):
 
+    holder_responses = []
+    holder_labels = []
 
-# Path to where your images are
-rekog_images_dir = "/media/antonberg/Origenes/Coding/image-taggers/data/"
-
-########### Create a list of images to pass through API
-# Make a list of all the images in the rekog_data_dir you created
-local_images = os.listdir(rekog_images_dir)
-
-holder_categories = []
-
-## TOdo: check if it is cheaper to analyse one image at a time or request tags for several images
-
-for imageFile in local_images:
-    with open(rekog_images_dir + imageFile, "rb") as image:
+    for imageFile in images:
+        image = open(imageFile, "rb")
+        # content = image.read()
         response = client.tag_image_in_stream(image)
+        holder_responses.append(response)
+        print("Detected tags for " + imageFile)
 
-    print("Detected tags for " + imageFile)
+        for label_counter, tag in enumerate(response.tags):
+            if tag.confidence > 0.55:
+                service = "azure"
+                image_id = imageFile
+                label_num = label_counter
+                label_name = tag.name
+                confidence = tag.confidence
+                date = datetime.datetime.now()
 
-    ## If no tags detected, still save the info:
-    if len(response.tags) == 0:
-        print("No labels detected")
-        temp_dict = {}
-        temp_dict["image_id"] = imageFile
-        temp_dict["full_detect_labels_response"] = response
-        temp_dict["label_num"] = ""
-        temp_dict["label_str"] = ""
-        temp_dict["label_conf"] = ""
-        holder_categories.append(temp_dict)
+                # Saving to database
+                sql = """INSERT INTO results(image,label,label_num,service,confidence,date) VALUES (?,?,?,?,?,?)"""
+                db.execute(
+                    sql, (image_id, label_name, label_num, service, confidence, date)
+                )
+                conn.commit()
 
-    else:
 
-        labels_counter = 1
+#####################################################################################################33
+if __name__ == "__main__":
+    args = common.arguments()  ## creates a common parameters sets for all programs
 
-        for tag in response.tags:
-            ## todo: check if there is support to define minimun confidence level on the API call
-            ## if not, filter here by requiring that confidence > congigured minimun level
-            print("'{}' with confidence {:.2f}%".format(tag.name, tag.confidence * 100))
-            temp_dict = {}
-            temp_dict["image_id"] = imageFile
-            temp_dict["full_detect_labels_response"] = response
-            temp_dict["label_num"] = labels_counter
-            temp_dict["label_str"] = tag.name
-            temp_dict["label_conf"] = tag.confidence
-            labels_counter += 1  # update for the next label
-            holder_categories.append(temp_dict)
+    secrets = yaml.safe_load(open("secrets.yaml"))
+    subscription_key = secrets["azure"]["api_key"]
+    endpoint = secrets["azure"]["api_url"]
 
-print(len(holder_categories))
+    client = ComputerVisionClient(
+        endpoint, CognitiveServicesCredentials(subscription_key)
+    )
+
+    if args.folder:
+        directory = args.folder
+        images = [os.path.join(directory, file) for file in os.listdir(directory)]
+        process_local(client, images)

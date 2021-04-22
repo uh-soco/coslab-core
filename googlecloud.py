@@ -2,58 +2,60 @@ import os
 import yaml
 import google.oauth2.service_account
 from google.cloud import vision
+import sqlite3
+import datetime
+import common
 
-secrets = yaml.safe_load(open("secrets.yaml"))
-api_account_info = secrets["google"]["service_account_info"]
-
-credentials = google.oauth2.service_account.Credentials.from_service_account_info(
-    api_account_info
+conn = sqlite3.connect("results.db")
+db = conn.cursor()
+db.execute(
+    "CREATE TABLE IF NOT EXISTS results (id INTEGER PRIMARY KEY, image TEXT, label TEXT, label_num INT, service TEXT, confidence REAL, date DATE )"
 )
 
-rekog_images_dir = "/media/antonberg/Origenes/Coding/image-taggers/data/"
-local_images = os.listdir(rekog_images_dir)
 
-client = vision.ImageAnnotatorClient(credentials=credentials)
+def process_local(client, images):
 
-holder_labels = []
+    holder_responses = []
+    holder_labels = []
 
-## TOdo: check if it is cheaper to analyse one image at a time or request tags for several images at the same time
-
-for imageFile in local_images:
-    with open(rekog_images_dir + imageFile, "rb") as image:
+    for imageFile in images:
+        image = open(imageFile, "rb")
         content = image.read()
         image = vision.Image(content=content)
         response = client.label_detection(image=image)
-        labels = response.label_annotations
+        holder_responses.append(response)
+        print("Detected labels for " + imageFile)
 
-    print("Detected labels for " + imageFile)
+        for label_counter, label in enumerate(response.label_annotations):
+            if label.score > 0.55:
+                service = "googlevision"
+                image_id = imageFile
+                label_num = label_counter
+                label_name = label.description
+                confidence = label.score
+                date = datetime.datetime.now()
 
-    if len(labels) == 0:
-        print("No Labels Detected")
-        temp_dict = {}
-        temp_dict["image_id"] = imageFile
-        temp_dict["full_detect_labels_response"] = labels
-        temp_dict["label_num"] = ""
-        temp_dict["label_str"] = ""
-        temp_dict["label_conf"] = ""
-        holder_labels.append(temp_dict)
+                # Saving to database
+                sql = """INSERT INTO results(image,label,label_num,service,confidence,date) VALUES (?,?,?,?,?,?)"""
+                db.execute(
+                    sql, (image_id, label_name, label_num, service, confidence, date)
+                )
+                conn.commit()
 
-    else:
 
-        label_counter = 1
+if __name__ == "__main__":
+    args = common.arguments()  ## creates a common parameters sets for all programs
 
-        ## todo: check if there is support to define minimun confidence level on the API call
-        ## if not, filter here by requiring that confidence > congigured minimun level
+    secrets = yaml.safe_load(open("secrets.yaml"))
+    api_account_info = secrets["google"]["service_account_info"]
 
-        for label in labels:
-            print(label.description + " : " + str(label.score))
-            temp_dict = {}
-            temp_dict["image_id"] = imageFile
-            temp_dict["full_detect_labels_response"] = label
-            temp_dict["label_num"] = label_counter
-            temp_dict["label_str"] = label.description
-            temp_dict["label_conf"] = label.score
-            label_counter += 1  # update for the next label
-            holder_labels.append(temp_dict)
+    credentials = google.oauth2.service_account.Credentials.from_service_account_info(
+        api_account_info
+    )
 
-print(len(holder_labels))
+    client = vision.ImageAnnotatorClient(credentials=credentials)
+
+    if args.folder:
+        directory = args.folder
+        images = [os.path.join(directory, file) for file in os.listdir(directory)]
+        process_local(client, images)
