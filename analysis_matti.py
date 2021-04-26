@@ -71,9 +71,10 @@ labels_per_image_service = collections.defaultdict(
 )
 
 for image, ids in image_ids.items():
+    print(", ".join(map(str, ids)))
     for result in db.execute(
-        f"SELECT (SELECT service FROM results where id==labels.result_id) as service, * FROM labels WHERE result_id in ({'.'.join(['?']*len(ids))})",
-        ids,
+        "SELECT (SELECT service FROM results where id==label) as service, * FROM results WHERE id in (%s)"
+        % (", ".join(map(str, ids)))
     ):
         labels_per_service[result["service"]].append(result["label"])
         labels_per_image_service[image][result["service"]].append(result["label"])
@@ -145,10 +146,10 @@ synsets_for_image_service = collections.defaultdict(
 )
 
 for image, ids in image_ids.items():
-
+    print(", ".join(map(str, ids)))
     for result in db.execute(
-        f"SELECT (SELECT service FROM results where id==labels.result_id) as service, * FROM labels WHERE result_id in ({','.join(['?']*len(ids))})",
-        ids,
+        "SELECT (SELECT service FROM results where id==label) as service, * FROM results WHERE id in (%s)"
+        % (", ".join(map(str, ids)))
     ):
 
         synsets_for_service[result["service"]] += wn.synsets(result["label"])
