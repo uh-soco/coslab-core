@@ -2,6 +2,7 @@ import os
 import yaml
 import sqlite3
 import datetime
+import time
 import common
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
@@ -16,16 +17,14 @@ db.execute(
 
 
 def process_local(client, images):
-
-    holder_responses = []
-    holder_labels = []
-
+    counter = 0
     for imageFile in images:
+        counter += 1
         image = open(imageFile, "rb")
-        # content = image.read()
         response = client.tag_image_in_stream(image)
-        holder_responses.append(response)
         print("Detected tags for " + imageFile)
+        if (counter % 10) == 0:
+            time.sleep(60)
 
         for label_counter, tag in enumerate(response.tags):
             if tag.confidence > 0.55:

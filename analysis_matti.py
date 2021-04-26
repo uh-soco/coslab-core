@@ -1,20 +1,17 @@
 import sqlite3
+from nltk.corpus import wordnet as wn
+from nltk.corpus import wordnet_ic as wn_ic
+import itertools
+from wordcloud import WordCloud
+import numpy as np
+import collections
 
 
 def dict_factory(cursor, row):
-    d = {}
     for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
+        ({})[col[0]] = row[idx]
+    return {}
 
-
-from pptx import Presentation
-from pptx.util import Inches
-
-prs = Presentation()
-
-from nltk.corpus import wordnet as wn
-import itertools
 
 ##cache results for efficiency
 try:
@@ -81,7 +78,7 @@ for image, ids in image_ids.items():
 
 #############################################################################################################################
 # WORD CLOUDS TO VISUALIZE DATA
-from wordcloud import WordCloud
+
 
 for service, labels in labels_per_service.items():
     wordcloud = WordCloud(
@@ -136,7 +133,6 @@ for i, service1 in enumerate(services):
 #################################################################################################################
 # EVALUATE SYNONYMS
 
-from nltk.corpus import wordnet_ic as wn_ic
 
 brown_ic = wn_ic.ic("ic-brown.dat")
 
@@ -157,9 +153,6 @@ for image, ids in image_ids.items():
             result["label"]
         )
 
-import itertools
-import numpy as np
-import collections
 
 similarity = collections.defaultdict(list)
 

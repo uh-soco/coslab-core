@@ -22,35 +22,34 @@ def process_local(client, images):
         image = open(imageFile, "rb")
         content = image.read()
         response = client.detect_labels(
-            Image={"Bytes": content},
-            MinConfidence=common.config.getfloat("DEFAULT", "minimal_confidence"),
+            Image={"Bytes": content}  # If MinConfidence is not specified,
+            # the operation returns labels with a confidence values greater than or equal to 55 percent.
         )
         ## todo: save responses directly to database/json output
         holder_responses.append(response)
         print("Detected labels for " + imageFile)
 
         for label_counter, label in enumerate(response["Labels"]):
-            if label["Confidence"] > 0.55:
-                service = "aws"
-                image_id = imageFile
-                label_num = label_counter
-                label_name = label["Name"]
-                confidence = label["Confidence"]
-                date = datetime.datetime.now()
+            service = "aws"
+            image_id = imageFile
+            label_num = label_counter
+            label_name = label["Name"]
+            confidence = label["Confidence"]
+            date = datetime.datetime.now()
 
-                # Saving to database
-                sql = """INSERT INTO results(image,label,label_num,service,confidence,date) VALUES (?,?,?,?,?,?)"""
-                db.execute(
-                    sql, (image_id, label_name, label_num, service, confidence, date)
-                )
-                conn.commit()
+            # Saving to database
+            sql = """INSERT INTO results(image,label,label_num,service,confidence,date) VALUES (?,?,?,?,?,?)"""
+            db.execute(
+                sql, (image_id, label_name, label_num, service, confidence, date)
+            )
+            conn.commit()
 
-            # temp_dict = {}
-            # temp_dict["image_id"] = imageFile
-            # temp_dict["label_num"] = label_counter
-            # temp_dict["label"] = label["Name"]
-            # temp_dict["confidence"] = label["Confidence"]
-            # holder_labels.append(temp_dict)
+        # temp_dict = {}
+        # temp_dict["image_id"] = imageFile
+        # temp_dict["label_num"] = label_counter
+        # temp_dict["label"] = label["Name"]
+        # temp_dict["confidence"] = label["Confidence"]
+        # holder_labels.append(temp_dict)
 
 
 if __name__ == "__main__":
