@@ -8,9 +8,10 @@ import collections
 
 
 def dict_factory(cursor, row):
+    d = {}
     for idx, col in enumerate(cursor.description):
         ({})[col[0]] = row[idx]
-    return {}
+    return d
 
 
 ##cache results for efficiency
@@ -53,8 +54,6 @@ def evaluate_similarity(synset1, synset2):
 conn = sqlite3.connect("results.db")
 conn.row_factory = dict_factory
 db = conn.cursor()
-
-import collections
 
 image_ids = collections.defaultdict(list)
 
