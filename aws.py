@@ -3,20 +3,15 @@ import json
 import yaml
 import os
 import common
-import sqlite3
 import datetime
 
-conn = sqlite3.connect("results.db")
-db = conn.cursor()
-db.execute(
-    "CREATE TABLE IF NOT EXISTS results (id INTEGER PRIMARY KEY, image TEXT, label TEXT, label_num INT, service TEXT, confidence REAL, date DATE )"
-)
-
+import database
 
 def process_local(client, images):
 
-    holder_responses = []
-    holder_labels = []
+    SERVICE = "aws"
+
+    out = database.Database( "results2.db" )
 
     for imageFile in images:
         image = open(imageFile, "rb")
@@ -25,31 +20,17 @@ def process_local(client, images):
             Image={"Bytes": content}  # If MinConfidence is not specified,
             # the operation returns labels with a confidence values greater than or equal to 55 percent.
         )
-        ## todo: save responses directly to database/json output
-        holder_responses.append(response)
-        print("Detected labels for " + imageFile)
+
+        out.save_api_response( imageFile, SERVICE, response )
+
 
         for label_counter, label in enumerate(response["Labels"]):
-            service = "aws"
-            image_id = imageFile
+
             label_num = label_counter
             label_name = label["Name"]
             confidence = label["Confidence"]
-            date = datetime.datetime.now()
 
-            # Saving to database
-            sql = """INSERT INTO results(image,label,label_num,service,confidence,date) VALUES (?,?,?,?,?,?)"""
-            db.execute(
-                sql, (image_id, label_name, label_num, service, confidence, date)
-            )
-            conn.commit()
-
-        # temp_dict = {}
-        # temp_dict["image_id"] = imageFile
-        # temp_dict["label_num"] = label_counter
-        # temp_dict["label"] = label["Name"]
-        # temp_dict["confidence"] = label["Confidence"]
-        # holder_labels.append(temp_dict)
+            out.save_label( imageFile, SERVICE, label_name, label_num, confidence )
 
 
 if __name__ == "__main__":

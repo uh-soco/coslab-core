@@ -9,38 +9,33 @@ from azure.cognitiveservices.vision.computervision.models import OperationStatus
 from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
 from msrest.authentication import CognitiveServicesCredentials
 
-conn = sqlite3.connect("results.db")
-db = conn.cursor()
-db.execute(
-    "CREATE TABLE IF NOT EXISTS results (id INTEGER PRIMARY KEY, image TEXT, label TEXT, label_num INT, service TEXT, confidence REAL, date DATE )"
-)
-
+import database
 
 def process_local(client, images):
-    counter = 0
-    for imageFile in images:
-        counter += 1
+
+    SERVICE = "azure_vision"
+
+    out = database.Database( "results2.db" )
+
+    for counter, imageFile in enumerate( images ):
         image = open(imageFile, "rb")
+
+        ## todo: should we maybe use raw response to ensure we get everything that API returned?
         response = client.tag_image_in_stream(image)
-        print("Detected tags for " + imageFile)
+        out.save_api_response( imageFile, SERVICE, response.as_dict() )
+
+        ## TODO: Anton, why do we need to sleep here?
         if (counter % 10) == 0:
             time.sleep(60)
 
         for label_counter, tag in enumerate(response.tags):
-            if tag.confidence > 0.55:
-                service = "azure"
-                image_id = imageFile
+            if tag.confidence > 0.55: ## TODO: read threshoald from configs
+
                 label_num = label_counter
                 label_name = tag.name
                 confidence = tag.confidence
-                date = datetime.datetime.now()
 
-                # Saving to database
-                sql = """INSERT INTO results(image,label,label_num,service,confidence,date) VALUES (?,?,?,?,?,?)"""
-                db.execute(
-                    sql, (image_id, label_name, label_num, service, confidence, date)
-                )
-                conn.commit()
+                out.save_label( imageFile, SERVICE, label_name, label_num, confidence )
 
 
 #####################################################################################################33
