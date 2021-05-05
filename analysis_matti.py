@@ -5,12 +5,16 @@ import itertools
 from wordcloud import WordCloud
 import numpy as np
 import collections
+from pptx import Presentation
+from pptx.util import Inches
+
+# prs = Presentation()
 
 
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
-        ({})[col[0]] = row[idx]
+        d[col[0]] = row[idx]
     return d
 
 
@@ -115,19 +119,19 @@ for service1 in services:
 
         print(service1, service2, accuracy)
 
-slide = prs.slides.add_slide(prs.slide_layouts[5])
-x, y, cx, cy = Inches(2), Inches(2), Inches(4), Inches(1.5)
-shape = slide.shapes.add_table(5, 5, x, y, cx, cy)
+# slide = prs.slides.add_slide(prs.slide_layouts[5])
+# x, y, cx, cy = Inches(2), Inches(2), Inches(4), Inches(1.5)
+# shape = slide.shapes.add_table(5, 5, x, y, cx, cy)
 
-for i, service1 in enumerate(services):
-    for j, service2 in enumerate(services):
+# for i, service1 in enumerate(services):
+#     for j, service2 in enumerate(services):
 
-        accuracy = similarity[service1, service2] / max_change[service1, service2]
+#         accuracy = similarity[service1, service2] / max_change[service1, service2]
 
-        shape.table.cell(i + 1, 0).text = service1
-        shape.table.cell(0, j + 1).text = service2
+#         shape.table.cell(i + 1, 0).text = service1
+#         shape.table.cell(0, j + 1).text = service2
 
-        shape.table.cell(i + 1, j + 1).text = "{:2.2f}".format(accuracy * 100)
+#         shape.table.cell(i + 1, j + 1).text = "{:2.2f}".format(accuracy * 100)
 
 #################################################################################################################
 # EVALUATE SYNONYMS
@@ -165,8 +169,6 @@ for image in synsets_for_image_service.keys():
 
         similarity[service1, service2].append(score)
 
-import numpy as np
-
 for services, paths in similarity.items():
 
     best = max(paths)
@@ -183,26 +185,26 @@ for services, paths in similarity.items():
 
     print(services[0], services[1], "mean", mean)
 
-slide = prs.slides.add_slide(prs.slide_layouts[5])
-x, y, cx, cy = Inches(2), Inches(2), Inches(4), Inches(1.5)
-shape = slide.shapes.add_table(5, 5, x, y, cx, cy)
+# slide = prs.slides.add_slide(prs.slide_layouts[5])
+# x, y, cx, cy = Inches(2), Inches(2), Inches(4), Inches(1.5)
+# shape = slide.shapes.add_table(5, 5, x, y, cx, cy)
 
-services = ["aws", "azure", "googlecloud"]
+# services = ["aws", "azure", "googlecloud"]
 
-for i, service1 in enumerate(services):
-    for j, service2 in enumerate(services):
+# for i, service1 in enumerate(services):
+#     for j, service2 in enumerate(services):
 
-        if service1 != service2:
+#         if service1 != service2:
 
-            paths = similarity[service1, service2]
+#             paths = similarity[service1, service2]
 
-            best = max(paths)
-            mean = np.mean(paths)
-            median = np.median(paths)
+#             best = max(paths)
+#             mean = np.mean(paths)
+#             median = np.median(paths)
 
-            shape.table.cell(i + 1, 0).text = service1
-            shape.table.cell(0, j + 1).text = service2
+#             shape.table.cell(i + 1, 0).text = service1
+#             shape.table.cell(0, j + 1).text = service2
 
-            shape.table.cell(i + 1, j + 1).text = "{:2.2f}".format(mean * 100)
+#             shape.table.cell(i + 1, j + 1).text = "{:2.2f}".format(mean * 100)
 
-prs.save("summary.pptx")
+# prs.save("summary.pptx")

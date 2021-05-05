@@ -11,31 +11,34 @@ from msrest.authentication import CognitiveServicesCredentials
 
 import database
 
+
 def process_local(client, images):
 
     SERVICE = "azure_vision"
 
-    out = database.Database( "results2.db" )
+    out = database.Database("results2.db")
 
-    for counter, imageFile in enumerate( images ):
+    for counter, imageFile in enumerate(images):
         image = open(imageFile, "rb")
 
         ## todo: should we maybe use raw response to ensure we get everything that API returned?
         response = client.tag_image_in_stream(image)
-        out.save_api_response( imageFile, SERVICE, response.as_dict() )
+        out.save_api_response(imageFile, SERVICE, response.as_dict())
 
         ## TODO: Anton, why do we need to sleep here?
         if (counter % 10) == 0:
             time.sleep(60)
 
         for label_counter, tag in enumerate(response.tags):
-            if tag.confidence > 0.55: ## TODO: read threshoald from configs
+            if (
+                tag.confidence > common.config["minimal_confidence"]
+            ):  ## TODO: read threshoald from configs
 
                 label_num = label_counter
                 label_name = tag.name
                 confidence = tag.confidence
 
-                out.save_label( imageFile, SERVICE, label_name, label_num, confidence )
+                out.save_label(imageFile, SERVICE, label_name, label_num, confidence)
 
 
 #####################################################################################################33

@@ -4,14 +4,14 @@ import yaml
 import os
 import common
 import datetime
-
 import database
+
 
 def process_local(client, images):
 
     SERVICE = "aws"
 
-    out = database.Database( "results2.db" )
+    out = database.Database("results2.db")
 
     for imageFile in images:
         image = open(imageFile, "rb")
@@ -21,8 +21,7 @@ def process_local(client, images):
             # the operation returns labels with a confidence values greater than or equal to 55 percent.
         )
 
-        out.save_api_response( imageFile, SERVICE, response )
-
+        out.save_api_response(imageFile, SERVICE, response)
 
         for label_counter, label in enumerate(response["Labels"]):
 
@@ -30,7 +29,7 @@ def process_local(client, images):
             label_name = label["Name"]
             confidence = label["Confidence"]
 
-            out.save_label( imageFile, SERVICE, label_name, label_num, confidence )
+            out.save_label(imageFile, SERVICE, label_name, label_num, confidence)
 
 
 if __name__ == "__main__":

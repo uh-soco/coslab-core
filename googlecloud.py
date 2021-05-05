@@ -8,11 +8,12 @@ import common
 
 import database
 
+
 def process_local(client, images):
 
     SERVICE = "google_vision"
 
-    out = database.Database( "results2.db" )
+    out = database.Database("results2.db")
 
     for imageFile in images:
         image = open(imageFile, "rb")
@@ -20,16 +21,21 @@ def process_local(client, images):
         image = vision.Image(content=content)
         response = client.label_detection(image=image)
 
-        out.save_api_response( imageFile, SERVICE, vision.AnnotateImageResponse.to_json( response ) )
+        out.save_api_response(
+            imageFile, SERVICE, vision.AnnotateImageResponse.to_json(response)
+        )
 
         for label_counter, label in enumerate(response.label_annotations):
-            if label.score > 0.55:  ## TODO: read threshoald from configs
+            if (
+                label.score > common.config["minimal_confidence"]
+            ):  ## TODO: read threshoald from configs
 
                 label_num = label_counter
                 label_name = label.description
                 confidence = label.score
 
-                out.save_label( imageFile, SERVICE, label_name, label_num, confidence )
+                out.save_label(imageFile, SERVICE, label_name, label_num, confidence)
+
 
 if __name__ == "__main__":
     args = common.arguments()  ## creates a common parameters sets for all programs
