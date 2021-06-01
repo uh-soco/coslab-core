@@ -1,28 +1,21 @@
-from sklearn.feature_extraction.text import CountVectorizer
-import scipy
-from scipy.spatial import distance
 import numpy as np
 import re
 from nltk.corpus import stopwords
 import pandas as pd
+import scipy
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import CountVectorizer
+from scipy.spatial import distance
 
-
-ss1 = "The president greets the press in Chicago"
-ss2 = "Obama speaks to the media in Illinois"
-
-# Count Vectorizer method
+###############Count Vectorizer method##############
+ss1 = "Matti puhuu Think Cornerissa Helsingissä"
+ss2 = "Matti puhuu medialle Helsingissä"
 
 
 def cosine_distance_countvectorizer_method(s1, s2):
-
     # sentences to list
     allsentences = [s1, s2]
-
-    # packages
-    from sklearn.feature_extraction.text import CountVectorizer
-    from scipy.spatial import distance
 
     # text to vector
     vectorizer = CountVectorizer()
@@ -40,11 +33,9 @@ def cosine_distance_countvectorizer_method(s1, s2):
 
 cosine_distance_countvectorizer_method(ss1, ss2)
 
-# Glove Embedding
+###################Glove Embedding####################
 
-gloveFile = (
-    "/media/antonberg/Origenes/Datasets/glove.twitter.27B/glove.twitter.27B.100d.txt"
-)
+gloveFile = "trained_vectordata/glove.twitter.27B/glove.twitter.27B.50d.txt"
 
 
 def loadGloveModel(gloveFile):
@@ -62,7 +53,6 @@ def loadGloveModel(gloveFile):
 
 
 def preprocess(raw_text):
-
     # keep only words
     letters_only_text = re.sub("[^a-zA-Z]", " ", raw_text)
 
@@ -77,7 +67,6 @@ def preprocess(raw_text):
 
 
 def cosine_distance_between_two_words(word1, word2):
-
     return 1 - scipy.spatial.distance.cosine(model[word1], model[word2])
 
 
@@ -107,6 +96,7 @@ def cosine_distance_wordembedding_method(s1, s2):
 
 def heat_map_matrix_between_two_sentences(s1, s2):
     df = calculate_heat_matrix_for_two_sentences(s1, s2)
+
     fig, ax = plt.subplots(figsize=(5, 5))
     ax_blue = sns.heatmap(df, cmap="YlGnBu")
     # ax_red = sns.heatmap(df)
@@ -114,9 +104,8 @@ def heat_map_matrix_between_two_sentences(s1, s2):
     return ax_blue
 
 
-ss1 = "The president greets the press in Chicago"
-ss2 = "Obama speaks to the media in Illinois"
+ss1 = "Matti speaks at Think Corner, Helsinki"
+ss2 = "Matti speaks to some random media at Helsinki"
 
 model = loadGloveModel(gloveFile)
 heat_map_matrix_between_two_sentences(ss1, ss2)
-plt.show()

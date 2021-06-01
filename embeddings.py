@@ -1,4 +1,5 @@
 import datetime
+from glove_embedding import loadGloveModel
 import numpy as np
 import os
 import gensim
@@ -13,9 +14,9 @@ class WordEmbedding:
         self.verbose = verbose
         self.model = {}
 
-    def convert(self, source, ipnut_file_path, output_file_path):
+    def convert(self, source, input_file_path, output_file_path):
         if source == "glove":
-            input_file = datapath(ipnut_file_path)
+            input_file = datapath(input_file_path)
             output_file = get_tmpfile(output_file_path)
             glove2word2vec(input_file, output_file)
         elif source == "word2vec":
@@ -23,11 +24,24 @@ class WordEmbedding:
         else:
             raise ValueError("Possible value of source are glove or word2vec")
 
+    def loadGloveModel(gloveFile):
+        print("Loading Glove Model")
+        with open(gloveFile, encoding="utf8") as f:
+            content = f.readlines()
+        model = {}
+        for line in content:
+            splitLine = line.split()
+            word = splitLine[0]
+            embedding = np.array([float(val) for val in splitLine[1:]])
+            model[word] = embedding
+        print("Done.", len(model), " words loaded!")
+        return model
+
     def load(self, source, file_path):
         print(datetime.datetime.now(), "start: loading", source)
         if source == "glove":
             self.model[source] = gensim.models.KeyedVectors.load_word2vec_format(
-                file_path
+                loadGloveModel(file_path)
             )
         elif source == "word2vec":
             self.model[source] = gensim.models.KeyedVectors.load_word2vec_format(
@@ -128,27 +142,10 @@ class WordEmbedding:
             raise
 
 
-# We may need to convert text file (downloaed from GloVe website) to vector format
-
-
-downloaded_glove_file_path = (
-    "/media/antonberg/Origenes/Datasets/glove.twitter.27B/glove.twitter.27B.100d.txt"
-)
-
-glove_file_path = (
-    "/media/antonberg/Origenes/Datasets/glove.twitter.27B/glove.twitter.27B.100d.vec"
-)
-word2vec_file_path = (
-    "/media/antonberg/Origenes/Datasets/GoogleNews-vectors-negative300.bin"
-)
+glove_file_path = "trained_vectordata/glove.twitter.27B/glove.twitter.27B.100d.txt"
+word2vec_file_path = "trained_vectordata/GoogleNews-vectors-negative300.bin"
 
 word_embedding = WordEmbedding()
-
-word_embedding.convert(
-    source="glove",
-    ipnut_file_path=downloaded_glove_file_path,
-    output_file_path=glove_file_path,
-)
 
 word_embedding.load(source="word2vec", file_path=word2vec_file_path)
 word_embedding.load(source="glove", file_path=glove_file_path)
