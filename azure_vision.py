@@ -12,7 +12,7 @@ from msrest.authentication import CognitiveServicesCredentials
 import database
 
 
-def process_local(client, images):
+def process_local(client, images, min_confidence = float( common.config["DEFAULT"]["minimal_confidence"] ) ):
 
     SERVICE = "azure_vision"
 
@@ -30,9 +30,7 @@ def process_local(client, images):
             time.sleep(60)
 
         for label_counter, tag in enumerate(response.tags):
-            if (
-                tag.confidence > common.config["minimal_confidence"]
-            ):  ## TODO: read threshoald from configs
+            if tag.confidence > min_confidence:
 
                 label_num = label_counter
                 label_name = tag.name

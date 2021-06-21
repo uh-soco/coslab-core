@@ -9,7 +9,7 @@ import common
 import database
 
 
-def process_local(client, images):
+def process_local(client, images, min_confidence = float( common.config["DEFAULT"]["minimal_confidence"] ) ):
 
     SERVICE = "google_vision"
 
@@ -26,9 +26,7 @@ def process_local(client, images):
         )
 
         for label_counter, label in enumerate(response.label_annotations):
-            if (
-                label.score > common.config["minimal_confidence"]
-            ):  ## TODO: read threshoald from configs
+            if label.score > min_confidence:
 
                 label_num = label_counter
                 label_name = label.description

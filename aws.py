@@ -7,7 +7,7 @@ import datetime
 import database
 
 
-def process_local(client, images):
+def process_local(client, images, min_confidence = float( common.config["DEFAULT"]["minimal_confidence"] )):
 
     SERVICE = "aws"
 
@@ -17,8 +17,8 @@ def process_local(client, images):
         image = open(imageFile, "rb")
         content = image.read()
         response = client.detect_labels(
-            Image={"Bytes": content}  # If MinConfidence is not specified,
-            # the operation returns labels with a confidence values greater than or equal to 55 percent.
+            Image={"Bytes": content},
+            MinConfidence=min_confidence
         )
 
         out.save_api_response(imageFile, SERVICE, response)
