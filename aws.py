@@ -4,14 +4,14 @@ import yaml
 import os
 import common
 import datetime
-import database
 
+import output
 
 def process_local(client, images, min_confidence = float( common.config["DEFAULT"]["minimal_confidence"] )):
 
     SERVICE = "aws"
 
-    out = database.Database("results2.db")
+    out = output.Output()
 
     for imageFile in images:
         image = open(imageFile, "rb")
@@ -30,6 +30,8 @@ def process_local(client, images, min_confidence = float( common.config["DEFAULT
             confidence = label["Confidence"]
 
             out.save_label(imageFile, SERVICE, label_name, label_num, confidence)
+
+    return out
 
 
 if __name__ == "__main__":
@@ -51,4 +53,5 @@ if __name__ == "__main__":
     if args.folder:
         directory = args.folder
         images = [os.path.join(directory, file) for file in os.listdir(directory)]
-        process_local(client, images)
+        out = process_local(client, images)
+        out.save_sql("aws.db")

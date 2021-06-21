@@ -9,14 +9,14 @@ from azure.cognitiveservices.vision.computervision.models import OperationStatus
 from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
 from msrest.authentication import CognitiveServicesCredentials
 
-import database
+import output
 
 
 def process_local(client, images, min_confidence = float( common.config["DEFAULT"]["minimal_confidence"] ) ):
 
     SERVICE = "azure_vision"
 
-    out = database.Database("results2.db")
+    out = output.Output()
 
     for counter, imageFile in enumerate(images):
         image = open(imageFile, "rb")
@@ -38,6 +38,8 @@ def process_local(client, images, min_confidence = float( common.config["DEFAULT
 
                 out.save_label(imageFile, SERVICE, label_name, label_num, confidence)
 
+    return out
+
 
 #####################################################################################################33
 if __name__ == "__main__":
@@ -54,4 +56,5 @@ if __name__ == "__main__":
     if args.folder:
         directory = args.folder
         images = [os.path.join(directory, file) for file in os.listdir(directory)]
-        process_local(client, images)
+        out = process_local(client, images)
+        out.save_sql("azure_vision.sql")
