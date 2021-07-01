@@ -1,11 +1,12 @@
 import collections
 import json
+from functools import partial
 
 class Output:
 
     def __init__( self ):
         ## todo: think about best data structures
-        self.labels = collections.defaultdict( lambda: collections.defaultdict( list ) )
+        self.labels = collections.defaultdict( partial( collections.defaultdict , list ) )
         self.responses = []
 
     def save_api_response( self, image, service, response ):
@@ -17,6 +18,11 @@ class Output:
 
     def save_label( self, image, service, label, label_num, confidence ):
         self.labels[ image ][ service ].append( {'label': label, 'confidence': confidence, 'number': label_num } )
+    def export_pickle( self, filename ):
+
+        import pickle
+
+        pickle.dump( self, open( filename, 'wb') )
 
 
     def export_sql( self, filename ):
