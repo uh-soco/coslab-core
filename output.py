@@ -19,7 +19,7 @@ class Output:
         self.labels[ image ][ service ].append( {'label': label, 'confidence': confidence, 'number': label_num } )
 
 
-    def save_sql( self, filename ):
+    def export_sql( self, filename ):
 
         import sqlite3
 
@@ -46,7 +46,7 @@ class Output:
                     label_text = label['label']
                     label_num = label['number']
                     confidence = label['confidence']
-                    
+
                     sql = """INSERT INTO results(image,label,label_num,service,confidence) VALUES (?,?,?,?,?)"""
                     db.execute( sql, (image, label_text, label_num, service, confidence ) )
 
