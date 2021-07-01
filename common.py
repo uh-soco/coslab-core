@@ -1,4 +1,6 @@
 import configparser
+import os
+import imghdr
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -33,3 +35,12 @@ def arguments():
     )
 
     return parser.parse_args()
+
+
+def image_files( folder ):
+    out = []
+    for root, folders, files in os.walk( folder ):
+        files = map( lambda f: root + '/' + f, files )
+        files = filter( lambda f: imghdr.what( f ) != None, files )
+        out += files
+    return list( out )

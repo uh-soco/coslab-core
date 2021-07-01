@@ -4,40 +4,51 @@ import google.oauth2.service_account
 from google.cloud import vision
 import sqlite3
 import datetime
-import common
 
+import common
 import output
 
+MAX_RESULTS=100 ## online discussion says that you can get up-to 50 results if you want, but let's keep this higher in case their API changes over time.
 
-def process_local(client, images, min_confidence = float( common.config["DEFAULT"]["minimal_confidence"] ) ):
+def client( api_account_info ):
+
+    credentials = google.oauth2.service_account.Credentials.from_service_account_info(
+        api_account_info
+    )
+
+    client = vision.ImageAnnotatorClient(credentials=credentials)
+
+    return client
+
+def process_local(client, out, image_file, min_confidence = float( common.config["DEFAULT"]["minimal_confidence"] ) ):
 
     SERVICE = "google_vision"
 
-    out = output.Output()
+    image = open( image_file, "rb")
+    content = image.read()
+    image = vision.Image(content=content)
+    response = client.label_detection(image=image,max_results=MAX_RESULTS)
 
-    for imageFile in images:
-        image = open(imageFile, "rb")
-        content = image.read()
-        image = vision.Image(content=content)
-        response = client.label_detection(image=image)
+    now = datetime.datetime.now()
 
-        out.save_api_response(
-            imageFile, SERVICE, vision.AnnotateImageResponse.to_json(response)
-        )
+    out.save_api_response(
+        image_file, SERVICE, vision.AnnotateImageResponse.to_json(response), now
+    )
 
-        for label_counter, label in enumerate(response.label_annotations):
-            if label.score > min_confidence:
+    for label_counter, label in enumerate(response.label_annotations):
+        if label.score > min_confidence:
 
-                label_num = label_counter
-                label_name = label.description
-                confidence = label.score
+            label_num = label_counter
+            label_name = label.description
+            confidence = label.score
 
-                out.save_label(imageFile, SERVICE, label_name, label_num, confidence)
-
-    return out
+            out.save_label(image_file, SERVICE, label_name, label_num, confidence, now )
 
 
 if __name__ == "__main__":
+
+    from progress.bar import Bar
+
     args = common.arguments()  ## creates a common parameters sets for all programs
 
     secrets = yaml.safe_load(open("secrets.yaml"))
@@ -51,6 +62,17 @@ if __name__ == "__main__":
 
     if args.folder:
         directory = args.folder
-        images = [os.path.join(directory, file) for file in os.listdir(directory)]
-        out = process_local(client, images)
-        out.save_sql("google_cloud.sql")
+        images = common.image_files( directory )
+
+        out = output.Output()
+
+        bar = Bar('Images labelled', max = len(images) )
+
+        for image in images:
+            process_local(client, out, image)
+            bar.next()
+
+        bar.finish()
+
+        out.export_sql("google_cloud.db")
+        out.export_pickle("google_cloud.pickle")
