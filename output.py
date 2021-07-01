@@ -1,6 +1,7 @@
 import collections
 import json
 from functools import partial
+import datetime
 
 class Output:
 
@@ -9,7 +10,7 @@ class Output:
         self.labels = collections.defaultdict( partial( collections.defaultdict , list ) )
         self.responses = []
 
-    def save_api_response( self, image, service, response, time ):
+    def save_api_response( self, image, service, response, time = datetime.datetime.now() ):
         ## if respose is already a dictionary, modify to json string
         if isinstance( response, dict ):
             response = json.dumps( response )
@@ -19,7 +20,7 @@ class Output:
         if len( self.responses ) % 1000:
             self.export_pickle( './temp.pickle' )
 
-    def save_label( self, image, service, label, label_num, confidence, time ):
+    def save_label( self, image, service, label, label_num, confidence, time = datetime.datetime.now() ):
         self.labels[ image ][ service ].append( {'label': label, 'confidence': confidence, 'number': label_num, 'time': time } )
 
     def export_pickle( self, filename ):
@@ -38,17 +39,17 @@ class Output:
 
         ## initialise database
         db.execute(
-            "CREATE TABLE IF NOT EXISTS results (id INTEGER PRIMARY KEY, image TEXT, label TEXT, label_num INT, service TEXT, confidence REAL, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP )"
+            "CREATE TABLE IF NOT EXISTS results (id INTEGER PRIMARY KEY, image TEXT, label TEXT, label_num INT, service TEXT, confidence REAL, timestamp TIMESTAMP )"
         )
 
         db.execute(
-            "CREATE TABLE IF NOT EXISTS raw (id INTEGER PRIMARY KEY, image TEXT, service TEXT, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, response TEXT )"
+            "CREATE TABLE IF NOT EXISTS raw (id INTEGER PRIMARY KEY, image TEXT, service TEXT, response TEXT, timestamp TIMESTAMP )"
         )
         ## todo: is current timestamp OK?
 
         for response in self.responses:
-            sql = """INSERT INTO raw(image,service,response) VALUES (?,?,?)"""
-            db.execute( sql, (response['file'], response['service'], response['response'] ) )
+            sql = """INSERT INTO raw(image,service,response,timestamp) VALUES (?,?,?,?)"""
+            db.execute( sql, (response['file'], response['service'], response['response'], response['time'] ) )
 
         for image, service in self.labels.items():
             for service, labels in service.items():
@@ -57,8 +58,8 @@ class Output:
                     label_num = label['number']
                     confidence = label['confidence']
 
-                    sql = """INSERT INTO results(image,label,label_num,service,confidence) VALUES (?,?,?,?,?)"""
-                    db.execute( sql, (image, label_text, label_num, service, confidence ) )
+                    sql = """INSERT INTO results(image,label,label_num,service,confidence,timestamp) VALUES (?,?,?,?,?,?)"""
+                    db.execute( sql, (image, label_text, label_num, service, confidence, response['time']  ) )
 
         conn.commit()
         conn.close()

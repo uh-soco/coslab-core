@@ -29,9 +29,8 @@ def process_local(client, out, image_file, min_confidence = float( common.config
         Image={"Bytes": content},
         MinConfidence=min_confidence
     )
-    now = datetime.datetime.now()
 
-    out.save_api_response(image_file, SERVICE, response, now )
+    out.save_api_response(image_file, SERVICE, response )
 
     for label_counter, label in enumerate(response["Labels"]):
 
@@ -39,7 +38,7 @@ def process_local(client, out, image_file, min_confidence = float( common.config
         label_name = label["Name"]
         confidence = label["Confidence"]
 
-        out.save_label(image_file, SERVICE, label_name, label_num, confidence, now )
+        out.save_label(image_file, SERVICE, label_name, label_num, confidence )
 
 
 if __name__ == "__main__":

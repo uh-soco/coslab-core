@@ -29,11 +29,9 @@ def process_local(client, out, image_file, min_confidence = float( common.config
     image = vision.Image(content=content)
     response = client.label_detection(image=image,max_results=MAX_RESULTS)
 
-    now = datetime.datetime.now()
 
     out.save_api_response(
-        image_file, SERVICE, vision.AnnotateImageResponse.to_json(response), now
-    )
+        image_file, SERVICE, vision.AnnotateImageResponse.to_json(response) )
 
     for label_counter, label in enumerate(response.label_annotations):
         if label.score > min_confidence:
@@ -42,7 +40,7 @@ def process_local(client, out, image_file, min_confidence = float( common.config
             label_name = label.description
             confidence = label.score
 
-            out.save_label(image_file, SERVICE, label_name, label_num, confidence, now )
+            out.save_label(image_file, SERVICE, label_name, label_num, confidence)
 
 
 if __name__ == "__main__":

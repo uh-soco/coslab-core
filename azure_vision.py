@@ -39,9 +39,7 @@ def process_local(client, out, image_file, min_confidence = float( common.config
                 print( ex )
                 return ## some other error occured, do not try to classify this image
 
-    now = datetime.datetime.now()
-
-    out.save_api_response(image_file, SERVICE, response.as_dict(), now )
+    out.save_api_response(image_file, SERVICE, response.as_dict() )
 
     for label_counter, tag in enumerate(response.tags):
         if tag.confidence > min_confidence:
@@ -50,7 +48,7 @@ def process_local(client, out, image_file, min_confidence = float( common.config
             label_name = tag.name
             confidence = tag.confidence
 
-            out.save_label(image_file, SERVICE, label_name, label_num, confidence, now )
+            out.save_label(image_file, SERVICE, label_name, label_num, confidence )
 
 if __name__ == "__main__":
     args = common.arguments()  ## creates a common parameters sets for all programs
