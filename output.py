@@ -15,6 +15,8 @@ class Output:
             response = json.dumps( response )
 
         self.responses.append( {'file': image, 'service': service, 'response': response } )
+        if len( self.responses ) % 1000:
+            self.export_pickle( './temp.pickle' )
 
     def save_label( self, image, service, label, label_num, confidence ):
         self.labels[ image ][ service ].append( {'label': label, 'confidence': confidence, 'number': label_num } )
