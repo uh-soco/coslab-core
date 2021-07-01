@@ -9,17 +9,19 @@ class Output:
         self.labels = collections.defaultdict( partial( collections.defaultdict , list ) )
         self.responses = []
 
-    def save_api_response( self, image, service, response ):
+    def save_api_response( self, image, service, response, time ):
         ## if respose is already a dictionary, modify to json string
         if isinstance( response, dict ):
             response = json.dumps( response )
 
-        self.responses.append( {'file': image, 'service': service, 'response': response } )
+        self.responses.append( {'file': image, 'service': service, 'response': response, 'time': time } )
+
         if len( self.responses ) % 1000:
             self.export_pickle( './temp.pickle' )
 
-    def save_label( self, image, service, label, label_num, confidence ):
-        self.labels[ image ][ service ].append( {'label': label, 'confidence': confidence, 'number': label_num } )
+    def save_label( self, image, service, label, label_num, confidence, time ):
+        self.labels[ image ][ service ].append( {'label': label, 'confidence': confidence, 'number': label_num, 'time': time } )
+
     def export_pickle( self, filename ):
 
         import pickle
