@@ -3,3 +3,6 @@
 .vscode/
 secrets.yaml
 __pycache__
+*.db
+*.sql
+congig.ini
