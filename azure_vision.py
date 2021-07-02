@@ -23,14 +23,12 @@ def process_local(client, out, image_file, min_confidence = float( common.config
 
     image = open(image_file, "rb")
 
-    ## todo: should we maybe use raw response to ensure we get everything that API returned?
-    ## todo: check for min-confidence setting
     response = None
 
     ## check that we are not limited by price tier slow down errors
     while not response:
         try:
-            response = client.tag_image_in_stream(image)
+            response = client.tag_image_in_stream(image, raw = True)
         except ComputerVisionErrorResponseException as ex:
             if ex.error.error.code == '429': ## error code for too many request for the tier. API returns error codeas as string.
                 import time
@@ -39,18 +37,16 @@ def process_local(client, out, image_file, min_confidence = float( common.config
                 print( ex )
                 return ## some other error occured, do not try to classify this image
 
-    now = datetime.datetime.now()
+    out.save_api_response(image_file, SERVICE, response.response.json() )
 
-    out.save_api_response(image_file, SERVICE, response.as_dict(), now )
-
-    for label_counter, tag in enumerate(response.tags):
+    for label_counter, tag in enumerate(response.output.tags):
         if tag.confidence > min_confidence:
 
             label_num = label_counter
             label_name = tag.name
             confidence = tag.confidence
 
-            out.save_label(image_file, SERVICE, label_name, label_num, confidence, now )
+            out.save_label(image_file, SERVICE, label_name, label_num, confidence )
 
 if __name__ == "__main__":
     args = common.arguments()  ## creates a common parameters sets for all programs
