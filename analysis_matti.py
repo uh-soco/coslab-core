@@ -55,7 +55,7 @@ def evaluate_similarity(synset1, synset2):
 ##########################################################################################################################
 # MAKE DATA READY FOR ANALYSIS
 
-conn = sqlite3.connect("results.db")
+conn = sqlite3.connect("run.db")
 conn.row_factory = dict_factory
 db = conn.cursor()
 
@@ -111,15 +111,15 @@ for image, d in labels_per_image_service.items():
             sim = len(d1.intersection(d2))
             print(sim)
 
-#             max_change[service1, service2] += min(len(d1), len(d2))
-#             similarity[service1, service2] += sim
+            max_change[service1, service2] += min(len(d1), len(d2))
+            similarity[service1, service2] += sim
 
-# for service1 in services:
-#     for service2 in services:
+for service1 in services:
+    for service2 in services:
 
-#         accuracy = similarity[service1, service2] / max_change[service1, service2]
+        accuracy = similarity[service1, service2] / max_change[service1, service2]
 
-#         print(service1, service2, accuracy)
+        print(service1, service2, accuracy)
 
 # slide = prs.slides.add_slide(prs.slide_layouts[5])
 # x, y, cx, cy = Inches(2), Inches(2), Inches(4), Inches(1.5)
@@ -139,59 +139,59 @@ for image, d in labels_per_image_service.items():
 # # EVALUATE SYNONYMS
 
 
-# brown_ic = wn_ic.ic("ic-brown.dat")
+brown_ic = wn_ic.ic("ic-brown.dat")
 
-# synsets_for_service = collections.defaultdict(list)
-# synsets_for_image_service = collections.defaultdict(
-#     lambda: collections.defaultdict(list)
-# )
+synsets_for_service = collections.defaultdict(list)
+synsets_for_image_service = collections.defaultdict(
+    lambda: collections.defaultdict(list)
+)
 
-# for image, ids in image_ids.items():
-#     print(", ".join(map(str, ids)))
-#     for result in db.execute(
-#         "SELECT (SELECT service FROM results where id==label) as service, * FROM results WHERE id in (%s)"
-#         % (", ".join(map(str, ids)))
-#     ):
+for image, ids in image_ids.items():
+    print(", ".join(map(str, ids)))
+    for result in db.execute(
+        "SELECT (SELECT service FROM results where id==label) as service, * FROM results WHERE id in (%s)"
+        % (", ".join(map(str, ids)))
+    ):
 
-#         synsets_for_service[result["service"]] += wn.synsets(result["label"])
-#         synsets_for_image_service[image][result["service"]] += wn.synsets(
-#             result["label"]
-#         )
+        synsets_for_service[result["service"]] += wn.synsets(result["label"])
+        synsets_for_image_service[image][result["service"]] += wn.synsets(
+            result["label"]
+        )
 
 
-# similarity = collections.defaultdict(list)
+similarity = collections.defaultdict(list)
 
-# for image in synsets_for_image_service.keys():
+for image in synsets_for_image_service.keys():
 
-#     for service1, service2 in itertools.permutations(services, 2):
-#         synsets1 = synsets_for_image_service[image][service1]
-#         synsets2 = synsets_for_image_service[image][service2]
+    for service1, service2 in itertools.permutations(services, 2):
+        synsets1 = synsets_for_image_service[image][service1]
+        synsets2 = synsets_for_image_service[image][service2]
 
-#         score = evaluate_similarity(synsets1, synsets2)
+        score = evaluate_similarity(synsets1, synsets2)
 
-#         similarity[service1, service2].append(score)
+        similarity[service1, service2].append(score)
 
-# for services, paths in similarity.items():
+for services, paths in similarity.items():
 
-#     best = max(paths)
-#     mean = np.mean(paths)
-#     median = np.median(paths)
+    best = max(paths)
+    mean = np.mean(paths)
+    median = np.median(paths)
 
-#     print(services[0], services[1], "median", median)
+    print(services[0], services[1], "median", median)
 
-# for services, paths in similarity.items():
+for services, paths in similarity.items():
 
-#     best = max(paths)
-#     mean = np.mean(paths)
-#     median = np.median(paths)
+    best = max(paths)
+    mean = np.mean(paths)
+    median = np.median(paths)
 
-#     print(services[0], services[1], "mean", mean)
+    print(services[0], services[1], "mean", mean)
 
 # # slide = prs.slides.add_slide(prs.slide_layouts[5])
 # # x, y, cx, cy = Inches(2), Inches(2), Inches(4), Inches(1.5)
 # # shape = slide.shapes.add_table(5, 5, x, y, cx, cy)
 
-# # services = ["aws", "azure", "googlecloud"]
+services = ["aws", "azure", "googlecloud"]
 
 # # for i, service1 in enumerate(services):
 # #     for j, service2 in enumerate(services):
