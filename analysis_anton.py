@@ -15,6 +15,7 @@ from scipy.spatial import distance
 import sqlite3
 from sqlite3 import Error
 import collections
+import itertools
 
 def dict_factory(cursor, row):
     d = {}
@@ -30,7 +31,7 @@ image_ids = collections.defaultdict(list)
 
 for result in db.execute("select * from results"):
     image_ids[result["image"]].append(result["id"])
-print(len(image_ids.keys()))
+# print(len(image_ids.keys()))
 
 labels_per_service = collections.defaultdict(list)
 labels_per_image_service = collections.defaultdict(
@@ -46,102 +47,10 @@ for image, ids in image_ids.items():
         labels_per_service[result["service"]].append(result["label"])
         labels_per_image_service[image][result["service"]].append(result["label"])
 
-
-#####################Accuracy metrics#########################
-services = labels_per_service.keys()
-
-similarity = collections.defaultdict(int)
-max_change = collections.defaultdict(int)
-
-for image, d in labels_per_image_service.items():
-    for service1 in services:
-        for service2 in services:
-            ## compare services 1 and 2
-
-            d1 = set(d[service1])
-            d2 = set(d[service2])
-
-            ## similarity
-            sim = len(d1.intersection(d2))
-            # print(sim)
-
-            max_change[service1, service2] += min(len(d1), len(d2))
-            similarity[service1, service2] += sim
-
-for service1 in services:
-    for service2 in services:
-
-        accuracy = similarity[service1, service2] / max_change[service1, service2]
-
-        print(service1, service2, accuracy)
-
-
-# ###############Count Vectorizer method (Implementation for tags) ##############
-# services = labels_per_service.keys()
-# similarity = collections.defaultdict(int)
-# vectorizer = CountVectorizer()
-
-# for image, d in labels_per_image_service.items():
-#     for service1 in services:
-#         for service2 in services:
-#             ## compare services 1 and 2
-#             # print(image, d)
-#             d1 = set(d[service1])
-#             d2 = set(d[service2])
-
-#             x = []
-#             x2 = []
-#             for tag in d1:
-#                 x.append(str.lower(tag))
-#             for tag in d2:
-#                 x2.append(str.lower(tag))
-
-#             x_str = ' '.join([str(elem) for elem in x])
-#             x2_str = ' '.join([str(elem) for elem in x2])
-
-#             alltags = [x_str, x2_str]
-#             # print(alltags)
-#             all_tags_to_vector = vectorizer.fit_transform(alltags)
-#             # print(all_tags_to_vector)
-#             tag_to_vector_v1 = all_tags_to_vector.toarray()[0].tolist()
-#             tag_to_vector_v2 = all_tags_to_vector.toarray()[1].tolist()
-
-#             ## distance of similarity
-#             cosine = distance.cosine(tag_to_vector_v1, tag_to_vector_v2)
-#             print("Similarity of three tags are equal to ", round((1 - cosine) * 100, 2), "%")
-
-
-##########################Count vectorized for sentences#######################################3
-
-ss1 = "Matti speaks at Think Corner, Helsinki"
-ss2 = "Matti speaks to some random media at Helsinki"
-
-def cosine_distance_countvectorizer_method(s1, s2):
-    # tags to list
-    alltags = [s1,s2]
-
-    # text to vector
-    vectorizer = CountVectorizer()
-    all_tags_to_vector = vectorizer.fit_transform(alltags)
-    tag_to_vector_v1 = all_tags_to_vector.toarray()[0].tolist()
-    tag_to_vector_v2 = all_tags_to_vector.toarray()[1].tolist()
-
-    # distance of similarity
-    cosine = distance.cosine(tag_to_vector_v1, tag_to_vector_v2)
-    print(
-        "Similarity of three tags are equal to ", round((1 - cosine) * 100, 2), "%"
-    )
-    return cosine
-
-
-cosine_distance_countvectorizer_method(ss1, ss2)
+# print(labels_per_image_service.keys())
 
 
 ###########################Word2Vec for tags######################################################
-
-list_azure = labels_per_service.get("azure_vision")
-list_google = labels_per_service.get("google_vision")
-
 def word2vec(tag):
     # count the characters in tag
     cw = Counter(tag)
@@ -149,28 +58,31 @@ def word2vec(tag):
     sw = set(cw)
     # precomputes the "length" of the word vector
     lw = math.sqrt(sum(c*c for c in cw.values()))
-
-    return cw, sw, lw #retursn a tuple
+    return cw, sw, lw #returns a tuple
 
 def cosdis(v1, v2):
     common = v1[1].intersection(v2[1])
     return sum(v1[0][ch]*v2[0][ch] for ch in common)/v1[2]/v2[2]
 
+a_azure = labels_per_service.get("azure_vision")
+b_google = labels_per_service.get("google_vision")
+c_amazon = labels_per_service.get("aws")
 
-threshold = 0.80     # if needed
-for key in list_azure:
-    for tag in list_google:
+best_similarities = []
+for tag1 in a_azure:
+    for tag2 in b_google:
+        similarities = []
         try:
-            # print(key)
-            # print(word)
-            res = cosdis(word2vec(tag), word2vec(key))
-            # print(res)
-            print("The cosine similarity between : {} and : {} is: {}".format(tag, key, res*100))
-            # if res > threshold:
-            #     print("Found a word with cosine distance > 80 : {} with original word: {}".format(word, key))
+            similarities.append(cosdis(word2vec(tag1), word2vec(tag2)))
+            cos = cosdis(word2vec(tag1), word2vec(tag2))
+            print("The cosine similarity between : {} and : {} is: {}".format(tag1, tag2, cos*100))
+            
         except IndexError:
             pass
+        best_similarities.append(max(similarities))
 
+print(best_similarities)
+           
 
 ###################Glove Embedding####################
 
