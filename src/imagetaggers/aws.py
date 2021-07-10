@@ -1,11 +1,11 @@
-import boto3
 import json
 import yaml
-import os
-import common
 import datetime
 
+import boto3
+
 import output
+import common
 
 def client(api_id, api_key, api_region):
 

@@ -1,9 +1,9 @@
 import os
 import yaml
+import datetime
+
 import google.oauth2.service_account
 from google.cloud import vision
-import sqlite3
-import datetime
 
 import common
 import output
