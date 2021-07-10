@@ -5,4 +5,5 @@ secrets.yaml
 __pycache__
 *.db
 *.sql
+*.pickle
 congig.ini
