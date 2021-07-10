@@ -36,7 +36,7 @@ def process_local(client, out, image_file, min_confidence = float( common.config
 
         label_num = label_counter
         label_name = label["Name"]
-        confidence = double( label["Confidence"] ) / 100
+        confidence = float( label["Confidence"] ) / 100
 
         out.save_label(image_file, SERVICE, label_name, label_num, confidence )
 
