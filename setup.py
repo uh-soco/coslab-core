@@ -23,5 +23,12 @@ setuptools.setup(
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.5",
-    install_requires = ['']
+    install_requires = """progress
+    configparser
+    google-cloud-vision
+    google-auth
+    msrest
+    azure
+    boto3
+    sqlite3""".split('\n')
 )

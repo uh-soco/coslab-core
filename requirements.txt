@@ -1,1 +1,19 @@
-## TODO: identify requirements here
+# from run.py
+progress
+
+## from output
+configparser
+
+# from googlecloud
+google-cloud-vision
+google-auth
+
+## from azure_vision
+msrest
+azure
+
+## from aws
+boto3
+
+## from output
+sqlite3
