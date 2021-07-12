@@ -63,3 +63,11 @@ class Output:
 
         conn.commit()
         conn.close()
+
+    def export_csv(self, filename):
+
+        import pandas as pd
+        #read labels into dataframe
+        df = pd.DataFrame(self)
+        #export dataframe to csv
+        df.to_csv(filename, index=False)
