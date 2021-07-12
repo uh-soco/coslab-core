@@ -29,6 +29,14 @@ class Output:
 
         pickle.dump( self, open( filename, 'wb') )
 
+    def import_pickle( self, filename ):
+
+        import pickle
+        old = pickle.load( open( filename, 'rb') )
+        self.labels = old.labels
+        self.responses = old.responses
+        del old
+
 
     def export_sql( self, filename ):
 
