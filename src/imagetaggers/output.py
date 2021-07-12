@@ -82,6 +82,6 @@ class Output:
 
         import pandas as pd
         #read labels into dataframe
-        df = pd.DataFrame(self)
+        df = pd.DataFrame(self.labels)
         #export dataframe to csv
         df.to_csv(filename, index=False)
