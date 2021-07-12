@@ -23,6 +23,12 @@ class Output:
     def save_label( self, image, service, label, label_num, confidence, time = datetime.datetime.now() ):
         self.labels[ image ][ service ].append( {'label': label, 'confidence': confidence, 'number': label_num, 'time': time } )
 
+    def has_image( self, image, service ):
+        if image in self.labels:
+            if service in self.labels[ image ]:
+                return True
+        return False
+
     def export_pickle( self, filename ):
 
         import pickle

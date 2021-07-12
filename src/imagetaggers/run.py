@@ -44,6 +44,15 @@ if __name__ == "__main__":
         bar = Bar('Images labelled', max = len(images) * 3 )
 
         for image in images:
+
+            ## check if we have the image: if yes, do not re-analyse it
+            azure_has = out.has_image( image, "azure_vision" )
+            google_has = out.has_image( image, "google_vision")
+            aws_has = out.has_image( image, "aws" )
+
+            if azure_has and google_has and aws_has:
+                continue ## next image
+
             azure_vision.process_local( azure_client , out, image)
             bar.next()
             googlecloud.process_local( google_client , out, image)
