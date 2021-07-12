@@ -14,6 +14,7 @@ def client(api_id, api_key, api_region):
         aws_access_key_id=api_id,
         aws_secret_access_key=api_key,
         region_name=api_region,
+        config = Config(connect_timeout=5, read_timeout=60, retries={'max_attempts': 20})
     )
 
     return client
