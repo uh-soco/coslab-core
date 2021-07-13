@@ -1,7 +1,6 @@
 import json
 import yaml
 import datetime
-import io
 
 import boto3
 
@@ -9,6 +8,7 @@ import output
 import common
 
 from PIL import Image
+from io import StringIO
 
 def client(api_id, api_key, api_region):
 
@@ -27,13 +27,17 @@ def process_local(client, out, image_file, min_confidence = float( common.config
 
     SERVICE = "aws"
 
-    image = Image.open(image_file)
-    image_rez = image.resize((256,256)) #resizing image
-    buf = io.BytesIO()
-    image_rez.save(buf, format='JPEG')
-    byte_image = buf.getvalue()
+    # image = open(image_file, 'rb')
+    # content = image.read()
 
-    content = byte_image.read()
+    image = Image.open(image_file)
+    image.thumbnail((512, 512))
+    buffer = StringIO.StringIO()
+    image.save(buffer, "PNG")
+
+    content = buffer.getvalue()
+
+
     response = client.detect_labels(
         Image={"Bytes": content},
         MinConfidence=min_confidence

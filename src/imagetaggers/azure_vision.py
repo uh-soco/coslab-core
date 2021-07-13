@@ -1,7 +1,6 @@
 import os
 import yaml
 import datetime
-import io
 
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
@@ -10,6 +9,7 @@ from azure.cognitiveservices.vision.computervision.models import ComputerVisionE
 from msrest.authentication import CognitiveServicesCredentials
 
 from PIL import Image
+from io import StringIO
 
 import output
 import common
@@ -25,17 +25,18 @@ def process_local(client, out, image_file, min_confidence = float( common.config
     SERVICE = "azure_vision"
 
     image = Image.open(image_file)
-    image_rez = image.resize((256,256)) #resizing image
-    buf = io.BytesIO()
-    image_rez.save(buf, format='JPEG')
-    byte_image = buf.getvalue()
+    image.thumbnail((512, 512))
+    buffer = StringIO.StringIO()
+    image.save(buffer, "PNG")
+
+    image_bytes = buffer.getvalue()
 
     response = None
 
     ## check that we are not limited by price tier slow down errors
     while not response:
         try:
-            response = client.tag_image_in_stream(byte_image, raw = True)
+            response = client.tag_image_in_stream(image_bytes, raw = True)
         except ComputerVisionErrorResponseException as ex:
             if ex.error.error.code == '429': ## error code for too many request for the tier. API returns error codeas as string.
                 import time

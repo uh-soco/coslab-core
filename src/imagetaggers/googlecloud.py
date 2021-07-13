@@ -1,12 +1,12 @@
 import os
 import yaml
 import datetime
-import io
 
 import google.oauth2.service_account
 from google.cloud import vision
 
 from PIL import Image
+from io import StringIO
 
 import common
 import output
@@ -27,12 +27,15 @@ def process_local(client, out, image_file, min_confidence = float( common.config
 
     SERVICE = "google_vision"
 
+    # image = open(image_file, 'rb)
+    # content = image.read()
+
     image = Image.open( image_file)
-    image_rez = image.resize((256,256)) #resizing image
-    buf = io.BytesIO()
-    image_rez.save(buf, format='JPEG')
-    byte_image = buf.getvalue()
-    content = byte_image.read()
+    image.thumbnail((512,512))
+    buffer = StringIO.StringIO()
+    image.save(buffer, 'PNG')
+  
+    content = buffer.getvalue()
 
     image = vision.Image(content=content)
     response = client.label_detection(image=image,max_results=MAX_RESULTS)
