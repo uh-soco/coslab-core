@@ -7,9 +7,6 @@ import boto3
 import output
 import common
 
-from PIL import Image
-from io import StringIO
-
 def client(api_id, api_key, api_region):
 
     client = boto3.client(
@@ -27,16 +24,8 @@ def process_local(client, out, image_file, min_confidence = float( common.config
 
     SERVICE = "aws"
 
-    # image = open(image_file, 'rb')
-    # content = image.read()
-
-    image = Image.open(image_file)
-    image.thumbnail((512, 512))
-    buffer = StringIO.StringIO()
-    image.save(buffer, "PNG")
-
-    content = buffer.getvalue()
-
+    image = open(image_file, 'rb')
+    content = image.read()
 
     response = client.detect_labels(
         Image={"Bytes": content},
