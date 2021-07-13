@@ -5,6 +5,8 @@ import datetime
 import google.oauth2.service_account
 from google.cloud import vision
 
+from PIL import Image
+
 import common
 import output
 
@@ -24,7 +26,8 @@ def process_local(client, out, image_file, min_confidence = float( common.config
 
     SERVICE = "google_vision"
 
-    image = open( image_file, "rb")
+    image = Image.open( image_file, "rb")
+    image = image.resize((256,256), Image.ANTIALIAS) #resizing image
     content = image.read()
     image = vision.Image(content=content)
     response = client.label_detection(image=image,max_results=MAX_RESULTS)

@@ -8,6 +8,8 @@ from azure.cognitiveservices.vision.computervision.models import VisualFeatureTy
 from azure.cognitiveservices.vision.computervision.models import ComputerVisionErrorResponseException
 from msrest.authentication import CognitiveServicesCredentials
 
+from PIL import Image
+
 import output
 import common
 
@@ -21,7 +23,8 @@ def process_local(client, out, image_file, min_confidence = float( common.config
 
     SERVICE = "azure_vision"
 
-    image = open(image_file, "rb")
+    image = Image.open(image_file, "rb")
+    image = image.resize((256,256), Image.ANTIALIAS) #resizing image
 
     response = None
 
