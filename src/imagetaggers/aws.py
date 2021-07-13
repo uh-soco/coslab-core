@@ -1,6 +1,7 @@
 import json
 import yaml
 import datetime
+import io
 
 import boto3
 
@@ -26,9 +27,13 @@ def process_local(client, out, image_file, min_confidence = float( common.config
 
     SERVICE = "aws"
 
-    image = Image.open(image_file, "rb")
-    image = image.resize((256,256), Image.ANTIALIAS) #resizing image
-    content = image.read()
+    image = Image.open(image_file)
+    image_rez = image.resize((256,256)) #resizing image
+    buf = io.BytesIO()
+    image_rez.save(buf, format='JPEG')
+    byte_image = buf.getvalue()
+
+    content = byte_image.read()
     response = client.detect_labels(
         Image={"Bytes": content},
         MinConfidence=min_confidence
