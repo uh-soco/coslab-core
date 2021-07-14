@@ -3,7 +3,7 @@ import json
 from functools import partial
 import datetime
 
-class Output:
+class TaggerResults:
 
     def __init__( self ):
         ## todo: think about best data structures

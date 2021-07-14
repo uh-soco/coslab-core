@@ -8,7 +8,7 @@ from azure.cognitiveservices.vision.computervision.models import VisualFeatureTy
 from azure.cognitiveservices.vision.computervision.models import ComputerVisionErrorResponseException
 from msrest.authentication import CognitiveServicesCredentials
 
-import output
+from taggerresults import TaggerResults
 import common
 
 def client( subscription_key, endpoint ):
@@ -60,7 +60,8 @@ if __name__ == "__main__":
     client = ComputerVisionClient(
         endpoint, CognitiveServicesCredentials(subscription_key)
     )
-    out = output.Output()
+    
+    out = TaggerResults()
 
     if args.folder:
         directory = args.folder

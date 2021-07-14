@@ -4,7 +4,7 @@ import datetime
 
 import boto3
 
-import output
+from taggerresults import TaggerResults
 import common
 
 def client(api_id, api_key, api_region):
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         region_name=api_region,
     )
 
-    out = output.Output()
+    out = TaggerResults()
 
     if args.folder:
         directory = args.folder

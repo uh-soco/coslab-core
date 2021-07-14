@@ -6,7 +6,7 @@ import google.oauth2.service_account
 from google.cloud import vision
 
 import common
-import output
+from taggerresults import TaggerResults
 
 MAX_RESULTS=100 ## online discussion says that you can get up-to 50 results if you want, but let's keep this higher in case their API changes over time.
 
@@ -27,7 +27,7 @@ def process_local(client, out, image_file, min_confidence = float( common.config
     image = open(image_file, 'rb')
     content = image.read()
 
-    
+
     image = vision.Image(content=content)
     response = client.label_detection(image=image,max_results=MAX_RESULTS)
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         directory = args.folder
         images = common.image_files( directory )
 
-        out = output.Output()
+        out = TaggerResults()
 
         bar = Bar('Images labelled', max = len(images) )
 
