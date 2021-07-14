@@ -90,7 +90,7 @@ for image, d in labels_per_image_service.items():
                         sim = w2v_model.similarity(tag1, tag2)
                         similarities_w2v.append(sim)
                         # best_similarities_w2v.append(max(similarities_w2v))
-                    print( max( similarities_w2v))
+                        print( max( similarities_w2v))
                     except KeyError:
                         pass
 
