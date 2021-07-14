@@ -31,7 +31,7 @@ def arguments():
         "--output",
         default="./output/",
         type=str,
-        help="folder where the pictures will be stored",
+        help="Folder and file where results are stored.",
     )
 
     return parser.parse_args()
