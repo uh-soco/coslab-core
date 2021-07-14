@@ -19,7 +19,7 @@ db = conn.cursor()
 
 image_ids = collections.defaultdict(list)
 
-for result in db.execute("select * from results"):
+for result in db.execute("select * from results limit 10"):
     image_ids[result["image"]].append(result["id"])
 # print(len(image_ids.keys()))
 
@@ -75,11 +75,11 @@ print("Glove: ", similarities_glove)
 print()
 print()
 
-#################Word2Vec###################
+# #################Word2Vec###################
 filename = 'trained_vectordata/GoogleNews-vectors-negative300.bin'
 w2v_model = KeyedVectors.load_word2vec_format(filename, binary=True)
 
-best_similarities_w2v = []
+# best_similarities_w2v = []
 for image, d in labels_per_image_service.items(): 
     for service1 in services:
         for service2 in services:
@@ -89,7 +89,8 @@ for image, d in labels_per_image_service.items():
                     try:
                         sim = w2v_model.similarity(tag1, tag2)
                         similarities_w2v.append(sim)
-                        best_similarities_w2v.append(max(similarities_w2v))
+                        # best_similarities_w2v.append(max(similarities_w2v))
+                    print( max( similarities_w2v))
                     except KeyError:
                         pass
 
@@ -98,29 +99,27 @@ print("Word2Vec: ", similarities_w2v)
 
 #################Bert######################
 
-# from sentence_transformers import SentenceTransformer, util
-# model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
+from sentence_transformers import SentenceTransformer, util
+model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
 
-# services = labels_per_service.keys()
+services = labels_per_service.keys()
 
-# tags1 = []
-# tags2 = []
-# for image, d in labels_per_image_service.items():
-#     for service1 in services:
-#         for service2 in services:
-#             for tag1 in d[service1]:
-#                 for tag2 in d[service2]:
-#                     tags1.append(tag1)
-#                     tags2.append(tag2)
+for image, d in labels_per_image_service.items():
+    for service1 in services:
+        for service2 in services:
+            for tag1 in d[service1]:
+                similarities_bert = []
+                for tag2 in d[service2]:
+                    print(tag1, tag2)
+                    #Compute embedding for both lists
+                    embedding1 = model.encode(tag1, convert_to_tensor=True)
+                    embedding2 = model.encode(tag2, convert_to_tensor=True)
+                    #Compute cosine-similarits
+                    cosine_scores = util.pytorch_cos_sim(embedding1, embedding2)
+                    print(cosine_scores)
+                    similarities_bert.append(cosine_scores)
 
-# #Compute embedding for both lists
-# embeddings1 = model.encode(tags1, convert_to_tensor=True)
-# embeddings2 = model.encode(tags2, convert_to_tensor=True)
-# #Compute cosine-similarits
-# cosine_scores = util.pytorch_cos_sim(embeddings1, embeddings2)
-# #Output the pairs with their score
-# for i in range(len(tags1)):
-#     print("{} \t\t {} \t\t Score: {:.4f}".format(tags1[i], tags2[i], cosine_scores[i][i]))
-
-
-
+                    # 
+                    # 
+                print( max( similarities_bert ) )
+                    
