@@ -32,37 +32,25 @@ def cosine(t1, t2):
 
 #Comparator template
 def identity_comparator( tag1, tag2 ):
-    if tag1 == tag2:
-        return 1
-    else:
-        return 0
+    return float( tag1 == tag2 )
 
 def glove_comparator( tag1, tag2 ):
     #vectorize tags
     v1 = get_vector(tag1)
     v2 = get_vector(tag2)
 
-    if tag1 == tag2:
-        return 1
-    else:
-        return cosine(v1,v2)
+    return cosine(v1,v2)
 
 
 def w2v_comparator( tag1, tag2 ):
-    if tag1 == tag2:
-        return 1
-    else:
-        return w2v_model.similarity(tag1, tag2)
+    return w2v_model.similarity(tag1, tag2)
 
 def bert_comparator( tag1, tag2 ):
     embedding1 = bert_model.encode(tag1, convert_to_tensor=True)
     embedding2 = bert_model.encode(tag2, convert_to_tensor=True)
     cosine_scores = util.pytorch_cos_sim(embedding1,embedding2)
 
-    if tag1 == tag2:
-        return 1
-    else:
-        return cosine_scores
+    return cosine_scores
 
 def compare_tags( results, service1, service2, comparator = identity_comparator ):
 
@@ -79,5 +67,5 @@ def compare_tags( results, service1, service2, comparator = identity_comparator 
                 similarity = comparator( tag1, tag2 )
                 similarities.append( similarity )
             best_similarities[ tag1 ] = max( similarities )
-            
+
     return best_similarities
