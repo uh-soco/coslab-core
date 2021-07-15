@@ -6,12 +6,9 @@ import collections
 import numpy as np
 from scipy import spatial
 
-#Load in models
+# load models
 
-#################GLOVE####################
-model = api.load("glove-wiki-gigaword-50") #choose more models from https://github.com/RaRe-Technologies/gensim-data
-
-# #################Word2Vec###################
+glove_model = api.load("glove-wiki-gigaword-50") #choose more models from https://github.com/RaRe-Technologies/gensim-data
 filename = 'trained_vectordata/GoogleNews-vectors-negative300.bin'
 w2v_model = KeyedVectors.load_word2vec_format(filename, binary=True)
 
@@ -19,31 +16,31 @@ w2v_model = KeyedVectors.load_word2vec_format(filename, binary=True)
 from sentence_transformers import SentenceTransformer, util
 bert_model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
 
-#Some functions for Glove
-
-def preprocess(s):
-    return [i.lower() for i in s.split()]
-
-def get_vector(s):
-    return np.sum(np.array([model[i] for i in preprocess(s)]), axis=0)
-
-def cosine(t1, t2):
-    return 1 - spatial.distance.cosine(t1, t2)
-
-#Comparator template
+# Comparator template
 def identity_comparator( tag1, tag2 ):
     return float( tag1 == tag2 )
+
+# Glove comparator
+
+def _preprocess(s):
+    return [i.lower() for i in s.split()]
+
+def _get_vector(s):
+    return np.sum(np.array([glove_model[i] for i in _preprocess(s)]), axis=0)
 
 def glove_comparator( tag1, tag2 ):
     #vectorize tags
     v1 = get_vector(tag1)
     v2 = get_vector(tag2)
 
-    return cosine(v1,v2)
+    return 1 - spatial.distance.cosine(v1, v2)
 
+# Word2Vec comparator
 
 def w2v_comparator( tag1, tag2 ):
     return w2v_model.similarity(tag1, tag2)
+
+# Bert comparator
 
 def bert_comparator( tag1, tag2 ):
     embedding1 = bert_model.encode(tag1, convert_to_tensor=True)
@@ -51,6 +48,8 @@ def bert_comparator( tag1, tag2 ):
     cosine_scores = util.pytorch_cos_sim(embedding1,embedding2)
 
     return cosine_scores
+
+## Common comparing functionalities
 
 def compare_tags( results, service1, service2, comparator = identity_comparator ):
 
