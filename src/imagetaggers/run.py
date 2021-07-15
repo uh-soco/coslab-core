@@ -6,7 +6,7 @@ import azure_vision
 import googlecloud
 import aws
 import common
-import output
+from taggerresults import TaggerResults
 
 if __name__ == "__main__":
     args = common.arguments()  ## creates a common parameters sets for all programs
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     aws_client = aws.client( api_id, api_key, api_region )
 
 
-    out = output.Output()
+    out = TaggerResults()
 
     if args.folder:
         directory = args.folder
