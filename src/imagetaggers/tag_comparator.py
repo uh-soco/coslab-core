@@ -30,8 +30,8 @@ def _get_vector(s):
 
 def glove_comparator( tag1, tag2 ):
     #vectorize tags
-    v1 = get_vector(tag1)
-    v2 = get_vector(tag2)
+    v1 = _get_vector(tag1)
+    v2 = _get_vector(tag2)
 
     return 1 - spatial.distance.cosine(v1, v2)
 
