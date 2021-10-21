@@ -6,15 +6,22 @@ import collections
 import numpy as np
 from scipy import spatial
 
+
 # load models
 
 glove_model = api.load("glove-wiki-gigaword-50") #choose more models from https://github.com/RaRe-Technologies/gensim-data
-filename = 'trained_vectordata/GoogleNews-vectors-negative300.bin'
-w2v_model = KeyedVectors.load_word2vec_format(filename, binary=True)
+
+## TODO: make this right and working with real package structure as well
+import os
+datapath = os.path.dirname(os.path.realpath(__file__)) + '/../../trained_vectordata/'
+
+filename = 'GoogleNews-vectors-negative300.bin'
+
+w2v_model = KeyedVectors.load_word2vec_format( datapath + filename, binary=True)
 
 #################Bert######################
-from sentence_transformers import SentenceTransformer, util
-bert_model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
+#from sentence_transformers import SentenceTransformer, util
+#bert_model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
 
 # Comparator template
 def identity_comparator( tag1, tag2 ):
@@ -56,6 +63,7 @@ def compare_tags( results, service1, service2, comparator = identity_comparator 
     images = results.labels ## dict of dicts
 
     for image in images:
+        print( image )
         tags1 = image[ service1 ]
         tags2 = image[ service2 ]
 
