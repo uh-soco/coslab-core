@@ -1,7 +1,6 @@
 import gensim.downloader as api
 from gensim.models.word2vec import Word2Vec
 from gensim.models import KeyedVectors
-from gensim.models.phrases import Phrases, ENGLISH_CONNECTOR_WORDS
 import sqlite3
 import collections
 import numpy as np
@@ -46,8 +45,11 @@ def glove_comparator( tag1, tag2 ):
 # Word2Vec comparator
 
 def w2v_comparator( tag1, tag2 ):
-    
-    return w2v_model.similarity(tag1, tag2)
+
+    try:
+        return w2v_model.similarity(tag1, tag2)
+    except KeyError:
+        return -1
 
 # Bert comparator
 
@@ -57,7 +59,7 @@ def bert_comparator( tag1, tag2 ):
     embedding2 = bert_model.encode(tag2, convert_to_tensor=True)
     cosine_scores = util.pytorch_cos_sim(embedding1,embedding2)
 
-    return cosine_scores
+    return cosine_scores[0][0]
 
 ## Common comparing functionalities
 
@@ -70,17 +72,12 @@ def compare_tags( results, service1, service2, comparator = identity_comparator 
         tags1 = image[ service1 ]
         tags2 = image[ service2 ]
 
-        t_1 = list(tags1)
-        t_2 = list(tags2)
-        bigram_tags1 = Phrases(t_1)
-        bigram_tags2 = Phrases(t_2)
-
         best_similarities = {}
 
-        for tag1 in bigram_tags1:
+        for tag1 in tags1:
             tag1 = tag1['label']
             similarities = [ -1 ] ## set a default value to make life easier
-            for tag2 in bigram_tags2:
+            for tag2 in tags2:
                 tag2 = tag2['label']
                 similarity = comparator( tag1, tag2 )
                 similarities.append( similarity )
