@@ -26,6 +26,8 @@ bert_model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
 
 # Comparator template
 def identity_comparator( tag1, tag2 ):
+    tag1 = tag1.lower()
+    tag2 = tag2.lower()
     return float( tag1 == tag2 )
 
 # Glove comparator
@@ -46,13 +48,13 @@ def glove_comparator( tag1, tag2 ):
 # Word2Vec comparator
 
 def w2v_comparator( tag1, tag2 ):
-    
+
     return w2v_model.similarity(tag1, tag2)
 
 # Bert comparator
 
 def bert_comparator( tag1, tag2 ):
-  
+
     embedding1 = bert_model.encode(tag1, convert_to_tensor=True)
     embedding2 = bert_model.encode(tag2, convert_to_tensor=True)
     cosine_scores = util.pytorch_cos_sim(embedding1,embedding2)
@@ -64,9 +66,9 @@ def bert_comparator( tag1, tag2 ):
 def compare_tags( results, service1, service2, comparator = identity_comparator ):
 
     images = results.labels ## dict of dicts
-    
+
     for name, image in images.items():
-        
+
         tags1 = image[ service1 ]
         tags2 = image[ service2 ]
 
@@ -85,6 +87,5 @@ def compare_tags( results, service1, service2, comparator = identity_comparator 
                 similarity = comparator( tag1, tag2 )
                 similarities.append( similarity )
             best_similarities[ tag1 ] = max( similarities )
-    
+
         return best_similarities
-   
