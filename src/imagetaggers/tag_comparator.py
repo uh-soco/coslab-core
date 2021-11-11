@@ -22,8 +22,8 @@ filename = 'GoogleNews-vectors-negative300.bin'
 w2v_model = KeyedVectors.load_word2vec_format( datapath + filename, binary=True)
 
 #################Bert######################
-#from sentence_transformers import SentenceTransformer, util
-#bert_model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
+from sentence_transformers import SentenceTransformer, util
+bert_model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
 
 # Comparator template
 def identity_comparator( tag1, tag2 ):
