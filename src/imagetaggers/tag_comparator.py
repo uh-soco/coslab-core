@@ -25,8 +25,7 @@ bert_model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
 
 # Comparator template
 def identity_comparator( tag1, tag2 ):
-    tag1 = tag1.lower()
-    tag2 = tag2.lower()
+
     return float( tag1 == tag2 )
 
 # Glove comparator
@@ -48,14 +47,10 @@ def glove_comparator( tag1, tag2 ):
 
 def w2v_comparator( tag1, tag2 ):
 
-<<<<<<< HEAD
     try:
         return w2v_model.similarity(tag1, tag2)
     except KeyError:
         return -1
-=======
-    return w2v_model.similarity(tag1, tag2)
->>>>>>> 1138d5abfb7272355cc95c3ea0033d7bf2048446
 
 # Bert comparator
 
@@ -65,7 +60,7 @@ def bert_comparator( tag1, tag2 ):
     embedding2 = bert_model.encode(tag2, convert_to_tensor=True)
     cosine_scores = util.pytorch_cos_sim(embedding1,embedding2)
 
-    return cosine_scores[0][0]
+    return cosine_scores.item()
 
 ## Common comparing functionalities
 
