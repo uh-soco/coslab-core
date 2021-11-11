@@ -1,8 +1,10 @@
+from itertools import permutations
+import collections
+
 import gensim.downloader as api
 from gensim.models.word2vec import Word2Vec
 from gensim.models import KeyedVectors
 import sqlite3
-import collections
 import numpy as np
 from scipy import spatial
 
@@ -20,8 +22,8 @@ filename = 'GoogleNews-vectors-negative300.bin'
 w2v_model = KeyedVectors.load_word2vec_format( datapath + filename, binary=True)
 
 #################Bert######################
-from sentence_transformers import SentenceTransformer, util
-bert_model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
+#from sentence_transformers import SentenceTransformer, util
+#bert_model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
 
 # Comparator template
 def identity_comparator( tag1, tag2 ):
@@ -63,6 +65,20 @@ def bert_comparator( tag1, tag2 ):
     return cosine_scores.item()
 
 ## Common comparing functionalities
+
+def compare_data( data, comparator = identity_comparator ):
+    images = data.labels
+
+    services = list( list( images.values() )[0].keys() )
+    crosses = permutations( services, 2 )
+
+    results = {}
+
+    for services in crosses:
+        results[ services ] = compare_tags( data, services[0], services[1], comparator )
+
+    return results
+
 
 def compare_tags( results, service1, service2, comparator = identity_comparator ):
 
