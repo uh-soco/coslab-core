@@ -42,9 +42,9 @@ def glove_comparator( tag1, tag2 ):
     #vectorize tags
     v1 = _get_vector(tag1)
     v2 = _get_vector(tag2)
-
+    
     return 1 - spatial.distance.cosine(v1, v2)
-
+    
 # Word2Vec comparator
 
 def w2v_comparator( tag1, tag2 ):
