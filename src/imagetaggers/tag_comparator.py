@@ -6,8 +6,8 @@ from gensim.models.word2vec import Word2Vec
 from gensim.models import KeyedVectors
 import sqlite3
 import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 from scipy import spatial
-
 
 # load models
 
@@ -43,11 +43,11 @@ def glove_comparator( tag1, tag2 ):
     try:
         v1 = _get_vector(tag1)
         v2 = _get_vector(tag2)
-        
+
         return 1 - spatial.distance.cosine(v1, v2)
     except KeyError:
         return -1
-    
+
 # Word2Vec comparator
 
 def w2v_comparator( tag1, tag2 ):
@@ -61,11 +61,10 @@ def w2v_comparator( tag1, tag2 ):
 
 def bert_comparator( tag1, tag2 ):
 
-    embedding1 = bert_model.encode(tag1, convert_to_tensor=True)
-    embedding2 = bert_model.encode(tag2, convert_to_tensor=True)
-    cosine_scores = util.pytorch_cos_sim(embedding1,embedding2)
+    embeddings = bert_model.encode( [tag1, tag2] )
+    cosine_scores = cosine_similarity( embeddings )
 
-    return cosine_scores.item()
+    return cosine_scores[0,1]
 
 ## Common comparing functionalities
 
