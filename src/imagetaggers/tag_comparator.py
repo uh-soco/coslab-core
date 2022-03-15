@@ -22,11 +22,8 @@ import gensim.downloader as gensimdl
 
 glove_model = gensimdl.load("glove-wiki-gigaword-50") #choose more models from https://github.com/RaRe-Technologies/gensim-data
 
-def _preprocess(s):
-    return [i.lower() for i in s.split()]
-
 def _get_vector(s):
-    return np.sum(np.array([glove_model[i] for i in _preprocess(s)]), axis=0)
+    return np.sum(np.array([glove_model[i] for i in s]), axis=0)
 
 def glove_comparator( tag1, tag2 ):
     #vectorize tags
@@ -93,10 +90,10 @@ def compare_tags( results, service1, service2, comparator = identity_comparator 
         tags2 = image[ service2 ]
 
         for tag1 in tags1:
-            tag1 = tag1['label']
+            tag1 = tag1['label'].lower()
             similarities = [ -1 ] ## set a default value to make life easier
             for tag2 in tags2:
-                tag2 = tag2['label']
+                tag2 = tag2['label'].lower()
                 similarity = comparator( tag1, tag2 )
                 similarities.append( similarity )
             best_similarities[ tag1 ] = max( similarities )
