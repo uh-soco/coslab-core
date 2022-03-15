@@ -51,16 +51,21 @@ def w2v_comparator( tag1, tag2 ):
 # Bert comparator
 
 from sklearn.metrics.pairwise import cosine_similarity
+from transformers import BertTokenizer, BertModel
 
-from sentence_transformers import SentenceTransformer, util
-bert_model = SentenceTransformer('paraphrase-MiniLM-L12-v2')
+## todo: why this pretrained model
+bert_tokenizer = BertTokenizer.from_pretrained('sentence-transformers/paraphrase-MiniLM-L6-v2')
+bert_model = BertModel.from_pretrained('sentence-transformers/paraphrase-MiniLM-L6-v2')
 
 def bert_comparator( tag1, tag2 ):
 
-    embeddings = bert_model.encode( [tag1, tag2] )
-    cosine_scores = cosine_similarity( embeddings )
+    outputs = bert_model( **tokenizer(tag1, return_tensors="pt") )
+    word_vect1 = outputs.pooler_output.detach().numpy()
 
-    return cosine_scores[0,1]
+    outputs = bert_model( **tokenizer(tag2, return_tensors="pt") )
+    word_vect2 = outputs.pooler_output.detach().numpy()
+
+    return float( cosine_similarity( word_vect1, word_vect2 ) )
 
 ## Common comparing functionalities
 
