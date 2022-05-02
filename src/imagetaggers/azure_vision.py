@@ -1,5 +1,4 @@
 import os
-import yaml
 import datetime
 
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
@@ -11,13 +10,23 @@ from msrest.authentication import CognitiveServicesCredentials
 from taggerresults import TaggerResults
 import common
 
-def client( subscription_key, endpoint ):
+
+def _client(subscription_key="", endpoint=""):
     client = ComputerVisionClient(
         endpoint, CognitiveServicesCredentials(subscription_key)
     )
     return client
 
-def process_local(client, out, image_file, min_confidence = float( common.config["DEFAULT"]["minimal_confidence"] ) ):
+
+def client(config):
+
+    SERVICE = "azure"
+
+    return _client(subscription_key=config[SERVICE]['api_key'],
+                   endpoint=config[SERVICE]['api_url'])
+
+
+def process_local(client, out, image_file, min_confidence=common.MIN_CONFIDENCE):
 
     SERVICE = "azure_vision"
 
@@ -28,16 +37,17 @@ def process_local(client, out, image_file, min_confidence = float( common.config
     ## check that we are not limited by price tier slow down errors
     while not response:
         try:
-            response = client.tag_image_in_stream(image, raw = True)
+            response = client.tag_image_in_stream(image, raw=True)
         except ComputerVisionErrorResponseException as ex:
-            if ex.error.error.code == '429': ## error code for too many request for the tier. API returns error codeas as string.
+            # error code for too many request for the tier. API returns error codeas as string.
+            if ex.error.error.code == '429':
                 import time
-                time.sleep( 60 )
+                time.sleep(60)
             else:
-                print( ex )
-                return ## some other error occured, do not try to classify this image
+                print(ex)
+                return  # some other error occured, do not try to classify this image
 
-    out.save_api_response(image_file, SERVICE, response.response.json() )
+    out.save_api_response(image_file, SERVICE, response.response.json())
 
     for label_counter, tag in enumerate(response.output.tags):
         if tag.confidence > min_confidence:
@@ -46,28 +56,25 @@ def process_local(client, out, image_file, min_confidence = float( common.config
             label_name = tag.name
             confidence = tag.confidence
 
-            out.save_label(image_file, SERVICE, label_name, label_num, confidence )
+            out.save_label(image_file, SERVICE, label_name,
+                           label_num, confidence)
+
 
 if __name__ == "__main__":
-    args = common.arguments()  ## creates a common parameters sets for all programs
-
     from progress.bar import Bar
 
-    secrets = yaml.safe_load(open("secrets.yaml"))
-    subscription_key = secrets["azure"]["api_key"]
-    endpoint = secrets["azure"]["api_url"]
+    ## creates a common parameters sets for all programs
+    args = common.arguments()
+    config = common.load_config(args.config)
+    client = client(config)
 
-    client = ComputerVisionClient(
-        endpoint, CognitiveServicesCredentials(subscription_key)
-    )
-    
     out = TaggerResults()
 
     if args.folder:
         directory = args.folder
-        images = common.image_files( directory )
+        images = common.image_files(directory)
 
-        bar = Bar('Images labelled', max = len(images) )
+        bar = Bar('Images labelled', max=len(images))
 
         for image in images:
             process_local(client, out, image)

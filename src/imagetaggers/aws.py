@@ -1,26 +1,38 @@
 import json
-import yaml
 import datetime
 
 import boto3
+from botocore.config import Config
 
 from taggerresults import TaggerResults
 import common
 
-def client(api_id, api_key, api_region):
+
+def _client(api_id="", api_key="", region=""):
 
     client = boto3.client(
         "rekognition",
         aws_access_key_id=api_id,
         aws_secret_access_key=api_key,
-        region_name=api_region,
-        config = Config(connect_timeout=5, read_timeout=60, retries={'max_attempts': 20})
+        region_name=region,
+        config=Config(
+            connect_timeout=5,
+            read_timeout=60,
+            retries={'max_attempts': 20}
+            )
     )
 
     return client
 
 
-def process_local(client, out, image_file, min_confidence = float( common.config["DEFAULT"]["minimal_confidence"] )):
+def client(config):
+
+    SERVICE = "aws"
+
+    return _client(api_id=config[SERVICE]['api_id'], api_key=config[SERVICE]['api_key'], region=config[SERVICE]['api_region'])
+
+
+def process_local(client, out, image_file, min_confidence=common.MIN_CONFIDENCE):
 
     SERVICE = "aws"
 
@@ -32,42 +44,32 @@ def process_local(client, out, image_file, min_confidence = float( common.config
         MinConfidence=min_confidence
     )
 
-    out.save_api_response(image_file, SERVICE, response )
+    out.save_api_response(image_file, SERVICE, response)
 
     for label_counter, label in enumerate(response["Labels"]):
 
         label_num = label_counter
         label_name = label["Name"]
-        confidence = float( label["Confidence"] ) / 100
+        confidence = float(label["Confidence"]) / 100
 
-        out.save_label(image_file, SERVICE, label_name, label_num, confidence )
+        out.save_label(image_file, SERVICE, label_name, label_num, confidence)
 
 
 if __name__ == "__main__":
-    args = common.arguments()  ## creates a common parameters sets for all programs
-
-    secrets = yaml.safe_load(open(args.secrets))
-
     from progress.bar import Bar
 
-    api_id = secrets["aws"]["api_id"]
-    api_key = secrets["aws"]["api_key"]
-    api_region = secrets["aws"]["api_region"]
-
-    client = boto3.client(
-        "rekognition",
-        aws_access_key_id=api_id,
-        aws_secret_access_key=api_key,
-        region_name=api_region,
-    )
+    ## creates a common parameters sets for all programs
+    args = common.arguments()
+    config = common.load_config(args.config)
+    client = client(config)
 
     out = TaggerResults()
 
     if args.folder:
         directory = args.folder
-        images = common.image_files( directory )
+        images = common.image_files(directory)
 
-        bar = Bar('Images labelled', max = len(images) )
+        bar = Bar('Images labelled', max=len(images))
 
         for image in images:
             process_local(client, out, image)
