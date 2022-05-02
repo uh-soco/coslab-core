@@ -4,7 +4,6 @@ import sqlite3
 
 import numpy as np
 
-
 ## TODO: make this right and working with real package structure as well
 
 import os
@@ -59,10 +58,10 @@ bert_model = BertModel.from_pretrained('sentence-transformers/paraphrase-MiniLM-
 
 def bert_comparator( tag1, tag2 ):
 
-    outputs = bert_model( **tokenizer(tag1, return_tensors="pt") )
+    outputs = bert_model( **bert_tokenizer(tag1, return_tensors="pt") )
     word_vect1 = outputs.pooler_output.detach().numpy()
 
-    outputs = bert_model( **tokenizer(tag2, return_tensors="pt") )
+    outputs = bert_model( **bert_tokenizer(tag2, return_tensors="pt") )
     word_vect2 = outputs.pooler_output.detach().numpy()
 
     return float( cosine_similarity( word_vect1, word_vect2 ) )
