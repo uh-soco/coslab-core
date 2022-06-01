@@ -86,7 +86,7 @@ def compare_tags( results, service1, service2, comparator = identity_comparator 
 
     images = results.labels ## dict of dicts
 
-    best_similarities = {}
+    similarities = collections.defaultdict( list )
 
     for name, image in images.items():
 
@@ -100,6 +100,6 @@ def compare_tags( results, service1, service2, comparator = identity_comparator 
                 tag2 = tag2['label'].lower()
                 similarity = comparator( tag1, tag2 )
                 similarities.append( similarity )
-            best_similarities[ tag1 ] = max( similarities )
+            similarities[ tag1 ].append( max( similarities ) )
 
-    return best_similarities
+    return similarities
