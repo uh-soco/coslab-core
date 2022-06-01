@@ -1,3 +1,9 @@
+from sklearn.metrics.pairwise import cosine_similarity
+from gensim.models.word2vec import Word2Vec
+from scipy import spatial
+from transformers import BertTokenizer, BertModel
+from gensim.models import KeyedVectors
+import gensim.downloader as gensimdl
 from itertools import permutations
 import collections
 import sqlite3
@@ -7,24 +13,27 @@ import numpy as np
 ## TODO: make this right and working with real package structure as well
 
 import os
-datapath = os.path.dirname(os.path.realpath(__file__)) + '/../../trained_vectordata/'
+datapath = os.path.dirname(os.path.realpath(
+    __file__)) + '/../../trained_vectordata/'
 
 # Comparator template
 
-def identity_comparator( tag1, tag2 ):
-    return float( tag1 == tag2 )
+
+def identity_comparator(tag1, tag2):
+    return float(tag1 == tag2)
 
 # Glove comparator
 
-from scipy import spatial
-import gensim.downloader as gensimdl
 
-glove_model = gensimdl.load("glove-wiki-gigaword-50") #choose more models from https://github.com/RaRe-Technologies/gensim-data
+# choose more models from https://github.com/RaRe-Technologies/gensim-data
+glove_model = gensimdl.load("glove-wiki-gigaword-50")
+
 
 def _get_vector(s):
     return np.sum(np.array([glove_model[i] for i in s]), axis=0)
 
-def glove_comparator( tag1, tag2 ):
+
+def glove_comparator(tag1, tag2):
     #vectorize tags
     try:
         v1 = _get_vector(tag1)
@@ -36,12 +45,12 @@ def glove_comparator( tag1, tag2 ):
 
 # Word2Vec comparator
 
-from gensim.models.word2vec import Word2Vec
-from gensim.models import KeyedVectors
 
-w2v_model = KeyedVectors.load_word2vec_format( datapath + 'GoogleNews-vectors-negative300.bin', binary=True)
+w2v_model = KeyedVectors.load_word2vec_format(
+    datapath + 'GoogleNews-vectors-negative300.bin', binary=True)
 
-def w2v_comparator( tag1, tag2 ):
+
+def w2v_comparator(tag1, tag2):
     try:
         return w2v_model.similarity(tag1, tag2)
     except KeyError:
@@ -49,57 +58,60 @@ def w2v_comparator( tag1, tag2 ):
 
 # Bert comparator
 
-from sklearn.metrics.pairwise import cosine_similarity
-from transformers import BertTokenizer, BertModel
 
 ## todo: why this pretrained model
-bert_tokenizer = BertTokenizer.from_pretrained('sentence-transformers/paraphrase-MiniLM-L6-v2')
-bert_model = BertModel.from_pretrained('sentence-transformers/paraphrase-MiniLM-L6-v2')
+bert_tokenizer = BertTokenizer.from_pretrained(
+    'sentence-transformers/paraphrase-MiniLM-L6-v2')
+bert_model = BertModel.from_pretrained(
+    'sentence-transformers/paraphrase-MiniLM-L6-v2')
 
-def bert_comparator( tag1, tag2 ):
 
-    outputs = bert_model( **bert_tokenizer(tag1, return_tensors="pt") )
+def bert_comparator(tag1, tag2):
+
+    outputs = bert_model(**bert_tokenizer(tag1, return_tensors="pt"))
     word_vect1 = outputs.pooler_output.detach().numpy()
 
-    outputs = bert_model( **bert_tokenizer(tag2, return_tensors="pt") )
+    outputs = bert_model(**bert_tokenizer(tag2, return_tensors="pt"))
     word_vect2 = outputs.pooler_output.detach().numpy()
 
-    return float( cosine_similarity( word_vect1, word_vect2 ) )
+    return float(cosine_similarity(word_vect1, word_vect2))
 
 ## Common comparing functionalities
 
-def compare_data( data, comparator = identity_comparator ):
+
+def compare_data(data, comparator=identity_comparator):
     images = data.labels
 
-    services = list( list( images.values() )[0].keys() )
-    crosses = permutations( services, 2 )
+    services = list(list(images.values())[0].keys())
+    crosses = permutations(services, 2)
 
     results = {}
 
     for services in crosses:
-        results[ services ] = compare_tags( data, services[0], services[1], comparator )
+        results[services] = compare_tags(
+            data, services[0], services[1], comparator)
 
     return results
 
 
-def compare_tags( results, service1, service2, comparator = identity_comparator ):
+def compare_tags(results, service1, service2, comparator=identity_comparator):
 
-    images = results.labels ## dict of dicts
+    images = results.labels  # dict of dicts
 
-    similarities = collections.defaultdict( list )
+    similarities = collections.defaultdict(list)
 
     for name, image in images.items():
 
-        tags1 = image[ service1 ]
-        tags2 = image[ service2 ]
+        tags1 = image[service1]
+        tags2 = image[service2]
 
         for tag1 in tags1:
             tag1 = tag1['label'].lower()
-            similarities = [ -1 ] ## set a default value to make life easier
+            tag_similarities = [-1]  # set a default value to make life easier
             for tag2 in tags2:
                 tag2 = tag2['label'].lower()
                 similarity = comparator( tag1, tag2 )
-                similarities.append( similarity )
-            similarities[ tag1 ].append( max( similarities ) )
+                tag_similarities.append( similarity )
+            similarities[tag1].append( max( tag_similarities ) )
 
     return similarities
