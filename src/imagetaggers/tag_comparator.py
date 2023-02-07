@@ -35,9 +35,11 @@ def _get_vector(s):
 
 def glove_comparator(tag1, tag2):
     #vectorize tags
+    #Version 2 (korjattu niin että ottaa sanoja, ei kirjaimia):
     try:
-        v1 = _get_vector(tag1)
-        v2 = _get_vector(tag2)
+        v1 = _get_vector([tag1])
+        v2 = _get_vector([tag2])
+    
 
         return 1 - spatial.distance.cosine(v1, v2)
     except KeyError:
@@ -56,25 +58,25 @@ def w2v_comparator(tag1, tag2):
     except KeyError:
         return -1
 
-# Bert comparator
+# # Bert comparator
 
 
-## todo: why this pretrained model
-bert_tokenizer = BertTokenizer.from_pretrained(
-    'sentence-transformers/paraphrase-MiniLM-L6-v2')
-bert_model = BertModel.from_pretrained(
-    'sentence-transformers/paraphrase-MiniLM-L6-v2')
+# ## todo: why this pretrained model
+# bert_tokenizer = BertTokenizer.from_pretrained(
+#     'sentence-transformers/paraphrase-MiniLM-L6-v2')
+# bert_model = BertModel.from_pretrained(
+#     'sentence-transformers/paraphrase-MiniLM-L6-v2')
 
 
-def bert_comparator(tag1, tag2):
+# def bert_comparator(tag1, tag2):
 
-    outputs = bert_model(**bert_tokenizer(tag1, return_tensors="pt"))
-    word_vect1 = outputs.pooler_output.detach().numpy()
+#     outputs = bert_model(**bert_tokenizer(tag1, return_tensors="pt"))
+#     word_vect1 = outputs.pooler_output.detach().numpy()
 
-    outputs = bert_model(**bert_tokenizer(tag2, return_tensors="pt"))
-    word_vect2 = outputs.pooler_output.detach().numpy()
+#     outputs = bert_model(**bert_tokenizer(tag2, return_tensors="pt"))
+#     word_vect2 = outputs.pooler_output.detach().numpy()
 
-    return float(cosine_similarity(word_vect1, word_vect2))
+#     return float(cosine_similarity(word_vect1, word_vect2))
 
 ## Common comparing functionalities
 
@@ -115,3 +117,19 @@ def compare_tags(results, service1, service2, comparator=identity_comparator):
             similarities[tag1].append( max( tag_similarities ) )
 
     return similarities
+
+#TESTING IF GLOVE IS GIVING ACCURATE SIMILARITIES AFTER FIX
+
+# print(glove_model.similarity("cat", "cat"))
+# print(glove_model.similarity("cat", "kitten"))
+# print(glove_model.similarity("cat", "dog"))
+# print(glove_model.similarity("cat", "puppy"))
+# print(glove_model.similarity("cat", "rabbit"))
+# print(glove_model.similarity("cat", "horse"))
+# print(glove_model.similarity("cat", "car"))
+# print(glove_model.similarity("road", "street"))
+# print(glove_model.similarity("road", "lane"))
+# print(glove_model.similarity("road", "sidewalk"))
+# print(glove_model.similarity("road", "cat"))
+# print(glove_model.similarity("car", "bus"))
+# print(glove_model.similarity("car", "train"))
