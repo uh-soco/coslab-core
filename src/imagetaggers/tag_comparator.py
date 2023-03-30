@@ -24,33 +24,19 @@ def identity_comparator(tag1, tag2):
 
 # Glove comparator
 
-
 # choose more models from https://github.com/RaRe-Technologies/gensim-data
 glove_model = gensimdl.load("glove-wiki-gigaword-50")
 
-
-def _get_vector(s):
-    return np.sum(np.array([glove_model[i] for i in s]), axis=0)
-
-
 def glove_comparator(tag1, tag2):
-    #vectorize tags
-    #Version 2 (korjattu niin että ottaa sanoja, ei kirjaimia):
     try:
-        v1 = _get_vector([tag1])
-        v2 = _get_vector([tag2])
-    
-
-        return 1 - spatial.distance.cosine(v1, v2)
+        return glove_model.similarity(tag1, tag2)
     except KeyError:
-        return -1
+        return -1 
 
 # Word2Vec comparator
 
 
-w2v_model = KeyedVectors.load_word2vec_format(
-    datapath + 'GoogleNews-vectors-negative300.bin', binary=True)
-
+w2v_model = KeyedVectors.load_word2vec_format( datapath + 'GoogleNews-vectors-negative300.bin', binary=True)
 
 def w2v_comparator(tag1, tag2):
     try:
@@ -117,19 +103,3 @@ def compare_tags(results, service1, service2, comparator=identity_comparator):
             similarities[tag1].append( max( tag_similarities ) )
 
     return similarities
-
-#TESTING IF GLOVE IS GIVING ACCURATE SIMILARITIES AFTER FIX
-
-# print(glove_model.similarity("cat", "cat"))
-# print(glove_model.similarity("cat", "kitten"))
-# print(glove_model.similarity("cat", "dog"))
-# print(glove_model.similarity("cat", "puppy"))
-# print(glove_model.similarity("cat", "rabbit"))
-# print(glove_model.similarity("cat", "horse"))
-# print(glove_model.similarity("cat", "car"))
-# print(glove_model.similarity("road", "street"))
-# print(glove_model.similarity("road", "lane"))
-# print(glove_model.similarity("road", "sidewalk"))
-# print(glove_model.similarity("road", "cat"))
-# print(glove_model.similarity("car", "bus"))
-# print(glove_model.similarity("car", "train"))
