@@ -9,58 +9,49 @@ from clarifai_grpc.grpc.api.status import status_code_pb2
 from taggerresults import TaggerResults
 import common
 
+class Clarify:
 
-def _client(api_key):
+    def __init__(self, api_key):
 
-    channel = ClarifaiChannel.get_grpc_channel()
-    stub = service_pb2_grpc.V2Stub(channel)
+        self.SERVICE = "clarifai"
 
-    return stub, api_key
+        self.channel = ClarifaiChannel.get_grpc_channel()
+        self.stub = service_pb2_grpc.V2Stub(channel)
 
+    def process_local(self, out, image_file, min_confidence=common.MIN_CONFIDENCE):
 
-def client(config):
+        with open(image_file, 'rb') as image:
+            content = image.read()
 
-    SERVICE = "clarifai"
+        metadata = (('authorization', f'Key {api_key}'),)
 
-    return _client(api_key=config[SERVICE]['api_key'])
-
-
-def process_local(stub, api_key, out, image_file, min_confidence=common.MIN_CONFIDENCE):
-
-    SERVICE = "clarifai"
-
-    with open(image_file, 'rb') as image:
-        content = image.read()
-
-    metadata = (('authorization', f'Key {api_key}'),)
-
-    response = stub.PostModelOutputs(
-        service_pb2_grpc.PostModelOutputsRequest(
-            model_id="aaa03c23b3724a16a56b629203edc62c", #put the model you want
-            inputs=[
-                resources_pb2.Input(
-                    data=resources_pb2.Data(
-                        image=resources_pb2.Image(
-                            base64=content
+        response = self.stub.PostModelOutputs(
+            service_pb2_grpc.PostModelOutputsRequest(
+                model_id="aaa03c23b3724a16a56b629203edc62c", #put the model you want
+                inputs=[
+                    resources_pb2.Input(
+                        data=resources_pb2.Data(
+                            image=resources_pb2.Image(
+                                base64=content
+                            )
                         )
                     )
-                )
-            ]
-        ),
-        metadata=metadata
-    )
+                ]
+            ),
+            metadata=metadata
+        )
 
-    if response.status.code != status_code_pb2.SUCCESS:
-        print(f"Error: {response.status.description}")
-        return
+        if response.status.code != status_code_pb2.SUCCESS:
+            print(f"Error: {response.status.description}")
+            return
 
-    out.save_api_response(image_file, SERVICE, response)
+        out.save_api_response(image_file, self.SERVICE, response)
 
-    for label_counter, concept in enumerate(response.outputs[0].data.concepts):
+        for label_counter, concept in enumerate(response.outputs[0].data.concepts):
 
-        label_num = label_counter
-        label_name = concept.name
-        confidence = float(concept.value)
+            label_num = label_counter
+            label_name = concept.name
+            confidence = float(concept.value)
 
-        if confidence >= min_confidence:
-            out.save_label(image_file, SERVICE, label_name, label_num, confidence)
+            if confidence >= min_confidence:
+                out.save_label(image_file, self.SERVICE, label_name, label_num, confidence)

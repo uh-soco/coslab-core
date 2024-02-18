@@ -10,51 +10,42 @@ from msrest.authentication import CognitiveServicesCredentials
 from taggerresults import TaggerResults
 import common
 
+class Azure:
 
-def _client(subscription_key="", endpoint=""):
-    client = ComputerVisionClient(
-        endpoint, CognitiveServicesCredentials(subscription_key)
-    )
-    return client
+    def __init__(self, subscription_key="", endpoint=""):
+        self.SERVICE = "azure_vision"
 
+        self.client = ComputerVisionClient(
+            endpoint, CognitiveServicesCredentials(subscription_key)
+        )
 
-def client(config):
+    def process_local(self, out, image_file, min_confidence=common.MIN_CONFIDENCE):
 
-    SERVICE = "azure"
+        image = open(image_file, 'rb')
 
-    return _client(subscription_key=config[SERVICE]['api_key'],
-                   endpoint=config[SERVICE]['api_url'])
+        response = None
 
+        ## check that we are not limited by price tier slow down errors
+        while not response:
+            try:
+                response = self.client.tag_image_in_stream(image, raw=True)
+            except ComputerVisionErrorResponseException as ex:
+                # error code for too many request for the tier. API returns error codeas as string.
+                if ex.error.error.code == '429':
+                    import time
+                    time.sleep(60)
+                else:
+                    print(ex)
+                    return  # some other error occured, do not try to classify this image
 
-def process_local(client, out, image_file, min_confidence=common.MIN_CONFIDENCE):
+        out.save_api_response(image_file, self.SERVICE, response.response.json())
 
-    SERVICE = "azure_vision"
+        for label_counter, tag in enumerate(response.output.tags):
+            if tag.confidence > min_confidence:
 
-    image = open(image_file, 'rb')
+                label_num = label_counter
+                label_name = tag.name
+                confidence = tag.confidence
 
-    response = None
-
-    ## check that we are not limited by price tier slow down errors
-    while not response:
-        try:
-            response = client.tag_image_in_stream(image, raw=True)
-        except ComputerVisionErrorResponseException as ex:
-            # error code for too many request for the tier. API returns error codeas as string.
-            if ex.error.error.code == '429':
-                import time
-                time.sleep(60)
-            else:
-                print(ex)
-                return  # some other error occured, do not try to classify this image
-
-    out.save_api_response(image_file, SERVICE, response.response.json())
-
-    for label_counter, tag in enumerate(response.output.tags):
-        if tag.confidence > min_confidence:
-
-            label_num = label_counter
-            label_name = tag.name
-            confidence = tag.confidence
-
-            out.save_label(image_file, SERVICE, label_name,
-                           label_num, confidence)
+                out.save_label(image_file, self.SERVICE, label_name,
+                            label_num, confidence)
