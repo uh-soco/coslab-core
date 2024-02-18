@@ -7,4 +7,6 @@ __pycache__
 *.db
 *.sql
 *.pickle
+*.pyc
+.DS_Store
 congig.ini
