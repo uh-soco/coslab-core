@@ -53,29 +53,3 @@ def process_local(client, out, image_file, min_confidence=common.MIN_CONFIDENCE)
         confidence = float(label["Confidence"]) / 100
 
         out.save_label(image_file, SERVICE, label_name, label_num, confidence)
-
-
-if __name__ == "__main__":
-    from progress.bar import Bar
-
-    ## creates a common parameters sets for all programs
-    args = common.arguments()
-    config = common.load_config(args.config)
-    client = client(config)
-
-    out = TaggerResults()
-
-    if args.folder:
-        directory = args.folder
-        images = common.image_files(directory)
-
-        bar = Bar('Images labelled', max=len(images))
-
-        for image in images:
-            process_local(client, out, image)
-            bar.next()
-
-        bar.finish()
-
-        out.export_sql("aws.db")
-        out.export_pickle("aws.pickle")
