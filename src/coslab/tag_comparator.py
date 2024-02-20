@@ -10,12 +10,6 @@ import sqlite3
 
 import numpy as np
 
-## TODO: make this right and working with real package structure as well
-
-import os
-datapath = os.path.dirname(os.path.realpath(
-    __file__)) + '/../../trained_vectordata/'
-
 # Comparator template
 
 
@@ -35,8 +29,7 @@ def glove_comparator(tag1, tag2):
 
 # Word2Vec comparator
 
-
-w2v_model = KeyedVectors.load_word2vec_format( datapath + 'GoogleNews-vectors-negative300.bin', binary=True)
+w2v_model = gensimdl.load("word2vec-google-news-300")
 
 def w2v_comparator(tag1, tag2):
     try:
