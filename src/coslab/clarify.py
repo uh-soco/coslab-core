@@ -6,8 +6,8 @@ from clarifai_grpc.channel.clarifai_channel import ClarifaiChannel
 from clarifai_grpc.grpc.api import service_pb2_grpc, resources_pb2
 from clarifai_grpc.grpc.api.status import status_code_pb2
 
-from taggerresults import TaggerResults
-import common
+from .taggerresults import TaggerResults
+from .common import *
 
 class Clarify:
 
@@ -18,7 +18,7 @@ class Clarify:
         self.channel = ClarifaiChannel.get_grpc_channel()
         self.stub = service_pb2_grpc.V2Stub(channel)
 
-    def process_local(self, out, image_file, min_confidence=common.MIN_CONFIDENCE):
+    def process_local(self, out, image_file, min_confidence=MIN_CONFIDENCE):
 
         with open(image_file, 'rb') as image:
             content = image.read()

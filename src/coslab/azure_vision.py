@@ -7,8 +7,8 @@ from azure.cognitiveservices.vision.computervision.models import VisualFeatureTy
 from azure.cognitiveservices.vision.computervision.models import ComputerVisionErrorResponseException
 from msrest.authentication import CognitiveServicesCredentials
 
-from taggerresults import TaggerResults
-import common
+from .taggerresults import TaggerResults
+from .common import *
 
 class Azure:
 
@@ -19,7 +19,7 @@ class Azure:
             endpoint, CognitiveServicesCredentials(subscription_key)
         )
 
-    def process_local(self, out, image_file, min_confidence=common.MIN_CONFIDENCE):
+    def process_local(self, out, image_file, min_confidence=MIN_CONFIDENCE):
 
         image = open(image_file, 'rb')
 

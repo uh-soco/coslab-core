@@ -4,8 +4,8 @@ import datetime
 import boto3
 from botocore.config import Config
 
-from taggerresults import TaggerResults
-import common
+from .taggerresults import TaggerResults
+from .common import *
 
 class AWS:
 
@@ -25,7 +25,7 @@ class AWS:
                 )
         )
 
-    def process_local(self, out, image_file, min_confidence=common.MIN_CONFIDENCE):
+    def process_local(self, out, image_file, min_confidence=MIN_CONFIDENCE):
 
         image = open(image_file, 'rb')
         content = image.read()
