@@ -7,7 +7,7 @@ packages = ["src/coslab/"]
 
 [project]
 name = "coslab-core"
-version = ["version"]
+version = "0.9.1"
 authors = [
   { name="Matti Nelimarkka", email="matti.nelimarkka@helsinki.fi" },
 ]
@@ -19,10 +19,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dynamic = ["dependencies"]
 
 [project.urls]
 Homepage = "https://github.com/uh-soco/coslab-core"
 Issues = "https://github.com/uh-soco/coslab-core/issues"
+
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["requirements.txt"]
