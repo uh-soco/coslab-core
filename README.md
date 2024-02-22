@@ -30,9 +30,39 @@ to label the images.
 Then use COSLAB to choose only labels above a pre-defined threshold level 
 for further analysis.
 
-## Technical how to use
+## Example
 
-To be added.
+```
+from coslab import aws
+from coslab import googlecloud
+from coslab import azure_vision
+from coslab import taggerresults
+from coslab import tag_comparator
+
+## establishing a container for all results
+results = taggerresults.TaggerResults()
+
+## establish classifiers
+amazon = aws.AWS(api_id="", api_key="", api_region="")
+google = googlecloud.GoogleCloud(service_account_info="")
+azure = azure_vision.Azure(subscription_key="", endpoint="")
+
+amazon.process_local( results, "image.png")
+google.process_local( results, "image.png")
+azure.process_local( results, "image.png")
+
+results.export_pickle("image.pickle")
+
+tag_comparator.compare_data( results )
+```
+
+## Installation
+
+COSLAB is available [via Pypi](https://pypi.org/project/coslab-core/), so you can
+
+```
+python3 -m pip install coslab-core
+```
 
 # References
 
