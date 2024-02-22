@@ -11,17 +11,20 @@ class GoogleCloud:
 
     # online discussion says that you can get up-to 50 results if you want, but let's keep this higher in case their API changes over time.
     MAX_RESULTS = 100
+    SERVICE = "google"
 
-    def _client(self, service_account_info=""):
-
-        self.SERVICE = "google"
-
-        credentials = google.oauth2.service_account.Credentials.from_service_account_info(
+    def __init__(self, service_account_info=""):
+        self.credentials = google.oauth2.service_account.Credentials.from_service_account_info(
             service_account_info
         )
 
-        self.client = vision.ImageAnnotatorClient(credentials=credentials)
+        self.client = vision.ImageAnnotatorClient(credentials=self.credentials)
 
+    @classmethod
+    def from_config(cls, config):
+        return GoogleCloud(
+               service_account_info=config[cls.SERVICE]['service_account_info']
+        )
 
     def process_local(self, out, image_file, min_confidence=MIN_CONFIDENCE):
         image = open(image_file, 'rb')

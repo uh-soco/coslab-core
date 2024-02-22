@@ -12,11 +12,18 @@ from .common import *
 
 class Azure:
 
-    def __init__(self, subscription_key="", endpoint=""):
-        self.SERVICE = "azure_vision"
+    SERVICE = "azure"
 
+    def __init__(self, subscription_key="", endpoint=""):
         self.client = ComputerVisionClient(
             endpoint, CognitiveServicesCredentials(subscription_key)
+        )
+
+    @classmethod
+    def from_config(cls, config):
+        return Azure(
+               subscription_key=config[cls.SERVICE]['subscription_key'],
+               endpoint= config[cls.SERVICE]['endpoint']
         )
 
     def process_local(self, out, image_file, min_confidence=MIN_CONFIDENCE):
