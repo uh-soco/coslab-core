@@ -78,3 +78,7 @@ Science Research. _Information Matters_,
 # Applications
 
 * None yet. Please let us know if you use it.
+
+# Acknowledgments
+
+We generiously thank C. V. Åkerlund Foundation for supporting this work.
