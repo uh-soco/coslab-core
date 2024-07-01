@@ -2,6 +2,7 @@ import collections
 import json
 from functools import partial
 import datetime
+import csv
 
 class TaggerResults:
 
@@ -80,8 +81,17 @@ class TaggerResults:
 
     def export_csv(self, filename):
 
-        import pandas as pd
-        #read labels into dataframe
-        df = pd.DataFrame(self.labels)
-        #export dataframe to csv
-        df.to_csv(filename, index=False)
+        with open( filename, 'w') as f:
+
+            csvf = csv.writer( f )
+
+            csvf.writerow( ('image', 'service', 'label', 'confidence') )
+
+            for image, service in self.labels.items():
+                for service, labels in service.items():
+                    for label in labels:
+                        label_text = label['label']
+                        confidence = label['confidence']
+                        csvf.writerow( (image,service,label_text,confidence) )
+        
+        f.close()
