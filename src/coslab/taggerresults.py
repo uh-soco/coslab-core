@@ -4,6 +4,8 @@ from functools import partial
 import datetime
 import csv
 
+import pandas
+
 class TaggerResults:
 
     def __init__( self ):
@@ -81,17 +83,19 @@ class TaggerResults:
 
     def export_csv(self, filename):
 
-        with open( filename, 'w') as f:
+        df = self.to_pandas( filename )
+        df.to_csv( filename )
 
-            csvf = csv.writer( f )
+    def to_pandas(self):
 
-            csvf.writerow( ('image', 'service', 'label', 'confidence') )
+        df = pandas.DataFrame( columns=['image', 'service', 'label', 'service-confidence'] )
 
-            for image, service in self.labels.items():
+        for image, service in self.labels.items():
                 for service, labels in service.items():
                     for label in labels:
                         label_text = label['label']
                         confidence = label['confidence']
-                        csvf.writerow( (image,service,label_text,confidence) )
-        
-        f.close()
+                        df.loc[ len(df) ] = (image,service,label_text,confidence)
+
+        return df
+

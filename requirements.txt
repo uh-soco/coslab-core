@@ -15,7 +15,16 @@ azure-cognitiveservices-vision-computervision
 ## from aws
 boto3
 
+## from taggerresults
+pandas
+
+## from tag_comparator
 scikit-learn
 gensim
-scipy==1.12.0 ## gensim depends on this version
+scipy==1.12.0 ## gensim depends on this version, this is not nice :(
 transformers
+
+## cli
+filetype
+pyyaml
+progress.bar
