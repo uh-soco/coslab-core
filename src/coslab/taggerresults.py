@@ -6,12 +6,15 @@ import csv
 
 import pandas
 
+from coslab import tag_comparator
+
 class TaggerResults:
 
     def __init__( self ):
         ## todo: think about best data structures
         self.labels = collections.defaultdict( partial( collections.defaultdict , list ) )
         self.responses = []
+        self._services = []
 
     def save_api_response( self, image, service, response, time = datetime.datetime.now() ):
         ## if respose is already a dictionary, modify to json string
@@ -24,6 +27,8 @@ class TaggerResults:
             self.export_pickle( './temp.pickle' )
 
     def save_label( self, image, service, label, label_num, confidence, time = datetime.datetime.now() ):
+        if service not in self._services:
+            self._services.append( service )
         self.labels[ image ][ service ].append( {'label': label, 'confidence': confidence, 'number': label_num, 'time': time } )
 
     def has_image( self, image, service ):
@@ -83,19 +88,32 @@ class TaggerResults:
 
     def export_csv(self, filename):
 
-        df = self.to_pandas( filename )
+        df = self.to_pandas()
         df.to_csv( filename )
 
-    def to_pandas(self):
+    def to_pandas(self, comparator = tag_comparator.identity_comparator ):
 
         df = pandas.DataFrame( columns=['image', 'service', 'label', 'service-confidence'] )
+
+        if comparator:
+            for service in self._services:
+                df[ f'coslab-{service}' ] = []
+
 
         for image, service in self.labels.items():
                 for service, labels in service.items():
                     for label in labels:
-                        label_text = label['label']
+                        label_text = label['label'].lower()
                         confidence = label['confidence']
-                        df.loc[ len(df) ] = (image,service,label_text,confidence)
+
+                        if comparator:
+                            coslab_scores = []
+                            for service in self._services:
+                                score = tag_comparator.compare_image_tags( self, image, label_text, service, comparator )
+                                coslab_scores.append( score )
+                            df.loc[ len(df) ] = [image,service,label_text,confidence] + coslab_scores
+                        else:
+                            df.loc[ len(df) ] = (image,service,label_text,confidence)
 
         return df
 

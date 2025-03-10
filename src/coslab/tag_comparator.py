@@ -96,3 +96,17 @@ def compare_tags(results, service1, service2, comparator=identity_comparator):
             similarities[tag1].append( max( tag_similarities ) )
 
     return similarities
+
+def compare_image_tags(results, image, label, service2, comparator=identity_comparator):
+
+    image = results.labels[ image ]
+
+    tags = image[service2]
+
+    tag_similarities = [-1]  # set a default value to make life easier
+    for tag2 in tags:
+        tag2 = tag2['label'].lower()
+        similarity = comparator( label, tag2 )
+        tag_similarities.append( similarity )
+    
+    return max( tag_similarities )
