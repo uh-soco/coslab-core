@@ -86,9 +86,9 @@ class TaggerResults:
         conn.commit()
         conn.close()
 
-    def export_csv(self, filename):
+    def export_csv(self, filename, comparator = tag_comparator.identity_comparator):
 
-        df = self.to_pandas()
+        df = self.to_pandas( comparator = comparator)
         df.to_csv( filename )
 
     def to_pandas(self, comparator = tag_comparator.identity_comparator ):
