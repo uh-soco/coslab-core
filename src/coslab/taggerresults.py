@@ -73,8 +73,8 @@ class TaggerResults:
             sql = """INSERT INTO raw(image,service,response,timestamp) VALUES (?,?,?,?)"""
             db.execute( sql, (response['file'], response['service'], response['response'], response['time'] ) )
 
-        for image, service in self.labels.items():
-            for service, labels in service.items():
+        for image, services in self.labels.items():
+            for service, labels in services.items():
                 for label in labels:
                     label_text = label['label']
                     label_num = label['number']
@@ -100,16 +100,16 @@ class TaggerResults:
                 df[ f'coslab-{service}' ] = []
 
 
-        for image, service in self.labels.items():
-                for service, labels in service.items():
+        for image, services in self.labels.items():
+                for service, labels in services.items():
                     for label in labels:
                         label_text = label['label'].lower()
                         confidence = label['confidence']
 
                         if comparator:
                             coslab_scores = []
-                            for service in self._services:
-                                score = tag_comparator.compare_image_tags( self, image, label_text, service, comparator )
+                            for compare_with in self._services:
+                                score = tag_comparator.compare_image_tags( self, image, label_text, compare_with, comparator )
                                 coslab_scores.append( score )
                             df.loc[ len(df) ] = [image,service,label_text,confidence] + coslab_scores
                         else:
