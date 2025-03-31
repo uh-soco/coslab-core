@@ -7,9 +7,10 @@ packages = ["src/coslab/"]
 
 [project]
 name = "coslab-core"
-version = "0.9.5"
+version = "0.9.6"
 authors = [
   { name="Matti Nelimarkka", email="matti.nelimarkka@helsinki.fi" },
+  { name="Anton Berg", email="anton.berg@helsinki.fi" }
 ]
 description = "Automating social science work around image tagging via various online services."
 readme = "README.md"
